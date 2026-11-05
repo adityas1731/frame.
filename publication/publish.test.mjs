@@ -6,7 +6,7 @@ import {createServer} from 'node:http';
 import {stage} from './stage.mjs';
 import {publish,repository,validateCatalog} from './publish.mjs';
 const directory=process.env.FRAME_RELEASE_INPUT;
-const receipt=JSON.parse(await readFile('release/1.0.3.0.json'));
+const receipt=directory?JSON.parse(await readFile('release/1.0.3.0.json')):null;
 const revision='a'.repeat(40);
 const options=(mode='verify')=>({mode,draft:'1',actor:'adityas1731',event:'workflow_dispatch',ref:'refs/heads/main',revision,version:receipt.version,sha256:receipt.binary.sha256,confirmation:`${mode.toUpperCase()} frame. ${receipt.version} ${revision} ${receipt.binary.sha256}`});
 async function fixture(){

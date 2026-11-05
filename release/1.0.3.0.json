@@ -10,8 +10,8 @@
     "role": "binary"
   },
   "source": {
-    "name": "frame-source-1.0.3.0-public-d97c8b531962.zip",
-    "sha256": "d97c8b53196270fb77e176c2a0755d7cb66e65e908d0984d517f772df0073be2",
+    "name": "frame-source-1.0.3.0-public-359d52cf0a6d.zip",
+    "sha256": "359d52cf0a6d7f29113fa8932a4d0f9cdfd03aaabfd899033e1ffcd83a538f1f",
     "implementationInputs": 205,
     "publicCommitAssignment": "Recorded by reviewed clean public Git revision; no private parent history imported",
     "historicalPrivateSourceUnchanged": true
@@ -33,8 +33,8 @@
       "role": "binary"
     },
     {
-      "name": "frame-source-1.0.3.0-public-d97c8b531962.zip",
-      "sha256": "d97c8b53196270fb77e176c2a0755d7cb66e65e908d0984d517f772df0073be2",
+      "name": "frame-source-1.0.3.0-public-359d52cf0a6d.zip",
+      "sha256": "359d52cf0a6d7f29113fa8932a4d0f9cdfd03aaabfd899033e1ffcd83a538f1f",
       "role": "source"
     },
     {
@@ -59,7 +59,7 @@
     },
     {
       "name": "SHA256SUMS",
-      "sha256": "638ebb6e6edb8def1808e2502ddc6993f7c0cf07197c8cac44dc55d5357f8246",
+      "sha256": "eb36104be26c2f9545312488315bf64cb5a0f6451cff2a55a76f9c5ee047f5e5",
       "role": "checksums"
     }
   ],

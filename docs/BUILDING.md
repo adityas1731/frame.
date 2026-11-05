@@ -16,3 +16,5 @@ For frontend editing, run `npm run dev` inside `ui-preview`. This is separate fr
 The immutable 1.0.3.0 binary was built from the original revision recorded in the source mapping. Public rebuilds use their current checkout identity and updated distribution documentation. They are not relabeled as the historical binary. See RELEASE-SOURCE.md.
 
 On Windows, clone into an explicit local directory such as `frame` because directory names ending in a dot are not portable. The requested GitHub repository name remains `frame.`.
+
+If building from a downloaded source ZIP, extract it into a new directory and create a local Git snapshot first. The package builder records Git source identity. Use your chosen local author identity for that snapshot, then run the commands above. No remote is required. The release receipt and catalog are distribution metadata stored in the repository, outside the self-referencing source ZIP. They are not needed to build the application.
