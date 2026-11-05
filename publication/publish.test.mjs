@@ -4,7 +4,7 @@ import {readFile} from 'node:fs/promises';
 import path from 'node:path';
 import {createServer} from 'node:http';
 import {stage} from './stage.mjs';
-import {publish,repository,validateCatalog} from './publish.mjs';
+import {publish,repository,validateCatalog,assertRequestMethod} from './publish.mjs';
 const directory=process.env.FRAME_RELEASE_INPUT;
 const receipt=directory?JSON.parse(await readFile('release/1.0.3.0.json')):null;
 const revision='a'.repeat(40);
@@ -58,4 +58,10 @@ test('catalog rejects wrong ABI, URL, identity, version or checksum',{skip:!dire
  const catalog=JSON.parse(await readFile('catalog/manifest.json'));const binary=await readFile(path.join(directory,receipt.binary.name));assert.equal(validateCatalog(catalog,receipt,binary),true);
  for(const patch of [{targetAbi:'99.0.0.0'},{sourceUrl:'https://example.invalid/wrong.zip'},{version:'1.0.2.0'},{checksum:'0'.repeat(32)}]){const changed=structuredClone(catalog);Object.assign(changed[0].versions[0],patch);assert.throws(()=>validateCatalog(changed,receipt,binary));}
  const changed=structuredClone(catalog);changed[0].guid='wrong';assert.throws(()=>validateCatalog(changed,receipt,binary));
+});
+
+test('verify-only REST client rejects every mutation method',()=>{
+ assert.doesNotThrow(()=>assertRequestMethod('verify','GET'));
+ for(const method of ['POST','PUT','PATCH','DELETE'])assert.throws(()=>assertRequestMethod('verify',method),/cannot issue publication mutations/);
+ assert.doesNotThrow(()=>assertRequestMethod('publish','PATCH'));
 });

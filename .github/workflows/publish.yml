@@ -33,7 +33,10 @@ concurrency:
   cancel-in-progress: false
 jobs:
   verify:
-    if: github.event_name == 'workflow_dispatch' && github.actor == 'adityas1731'
+    if: github.event_name == 'workflow_dispatch' && github.actor == 'adityas1731' && github.ref == 'refs/heads/main'
+    # GitHub requires push-capable access to read unpublished draft releases.
+    permissions:
+      contents: write
     runs-on: ubuntu-24.04
     timeout-minutes: 15
     steps:

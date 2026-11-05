@@ -14,6 +14,9 @@ export function selection({mode='verify',actor,event,ref,revision,version,sha256
  if(receipt.version!==version||receipt.binary.sha256!==sha256||receipt.compatibility.targetAbi!=='12.3.0.0')throw Error('Release selection mismatch');
  if(confirmation!==`${mode.toUpperCase()} frame. ${version} ${revision} ${sha256}`)throw Error('Exact confirmation required');
 }
+export function assertRequestMethod(mode,method) {
+ if(mode==='verify'&&method!=='GET')throw Error('Verification cannot issue publication mutations');
+}
 export async function verifyFiles(directory,receipt) {
  for(const asset of receipt.assets){
   if(path.basename(asset.name)!==asset.name||!/^[a-f0-9]{64}$/.test(asset.sha256))throw Error('Unsafe release asset');
@@ -68,6 +71,7 @@ async function main(){
  if(execFileSync('git',['rev-parse','HEAD'],{encoding:'utf8'}).trim()!==revision)throw Error('Public workflow revision mismatch');
  const receipt=JSON.parse(await readFile('release/'+version+'.json'));
  async function api(route,method='GET',body,binary=false,allow404=false){
+  assertRequestMethod(mode,method);
   const response=await fetch('https://api.github.com/repos/'+repository+route,{method,headers:{Authorization:`Bearer ${process.env.GH_TOKEN}`,Accept:binary?'application/octet-stream':'application/vnd.github+json','Content-Type':'application/json'},body:body===undefined?undefined:JSON.stringify(body)});
   if(allow404&&response.status===404)return null;if(!response.ok)throw Error(`GitHub request failed (${response.status})`);if(response.status===204)return null;return binary?Buffer.from(await response.arrayBuffer()):response.json();
  }
