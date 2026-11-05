@@ -1,21 +1,31 @@
 # Release Publication
 
-Development and its audit evidence stay in the private repository. This public repository receives a reviewed source export, not development history. Its CI token is read-only and cannot publish. No cross-repository token or publishing secret is stored in normal CI.
+`adityas1731/frame.` contains the clean source export and distribution workflows. It is currently private, with an unpublished `v1.0.3` draft. The `plugin-catalog` branch does not exist yet. Development history and operational evidence stay in the separate private development repository.
 
-1. Review private CI, the binary hash, public source mapping and complete dependency-source supplement. Record the exact public revision and asset checksums.
-2. After explicit approval, transfer only the selected assets into an unpublished draft on this repository using the local staging helper. The maintainer uses their existing GitHub CLI sign-in. Default staging mode is a plan with no writes.
-3. Manually dispatch publication in verify mode against that draft. Supply version, draft ID, exact public revision, binary checksum and VERIFY frame. <version> <public revision> <checksum>. GitHub requires push-capable access to read unpublished drafts. This owner-dispatched main-only job therefore uses a short-lived Contents-write token. It remains verify-only and its REST client rejects mutation methods. Normal CI stays read-only.
-4. After explicit public-release approval, manually run publish mode on main with the corresponding PUBLISH confirmation. Only this conditional job gets a short-lived contents-write token. It never changes repository visibility.
-5. The job verifies draft assets and source mapping before publishing. It checks anonymous binary/source/dependency downloads before updating the stable plugin-catalog branch. Conflicts fail closed. Never replace published bytes.
+Normal push and pull-request CI has a read-only token, no publishing secrets and no publication step. Successful CI cannot publish a release or update the catalog.
 
-The public repository must be approved and created separately. Its exact requested name is frame. GitHub acceptance of the trailing dot must be checked at creation without silently choosing another name. Current preparation creates no GitHub repository or public endpoint.
+## Verify A Draft
 
-Manual initiation is an operating control, not enforced independent reviewer approval. Anyone allowed to edit workflows can change that control. No paid GitHub feature or unprotected deployment environment is used.
+1. Record the exact version, final repository commit and approved binary SHA-256. Check the release receipt, corresponding source, dependency sources, notices and compatibility.
+2. Stage only the receipt's seven assets in an unpublished draft. The local staging helper uses the maintainer's existing GitHub CLI sign-in. Its default `plan` mode makes no writes. Never replace an existing published asset.
+3. Set the draft's target to the reviewed repository commit. Retain its exact tag, name and unpublished status when updating draft metadata.
+4. Manually dispatch **frame. publication** on `main` in `verify` mode. Supply the draft ID, version, exact revision, checksum and `VERIFY frame. <version> <revision> <checksum>`.
+5. Confirm verification passed, reported `remoteWrites: 0` and skipped the publish job. Recheck the repository is private, the draft unpublished and all seven asset hashes unchanged.
 
-Local staging syntax is node publication/stage.mjs <asset directory> <version> <public revision> <confirmation> plan. Upload mode requires STAGE frame. <version> <public revision> <binary checksum> and separate owner approval. A failed upload leaves a draft; it does not publish or update the catalog.
+GitHub requires push-capable access to read unpublished drafts. The owner-started, main-only verification job therefore has a short-lived Contents-write token. Verification rejects REST mutation methods and returns before publication writes. This is a code-level guard, not a read-only credential. Never copy a maintainer token into CI to bypass draft access.
 
-The release and catalog updates are separate GitHub operations. If anonymous verification or a later API call fails after release publication, the catalog stays unchanged but the release may already be public. Stop and inspect it before retrying. The workflow never automatically deletes an exposed release or rewrites an existing catalog version.
+The local six-test rehearsal and hosted draft verification have passed. Anonymous downloads remain untested while the repository and draft are private.
 
-The local HTTP rehearsal covers staging and the publication API sequence. Hosted Actions, public downloads and a real QR/phone installation still require separate approval and testing after the repository exists.
+## Publish After Approval
 
-The verification job has write capability because of GitHub draft visibility rules. The verify command makes no publication writes. This code-level guard is not equivalent to a read-only token or an independent reviewer gate. Never copy a maintainer token into CI to bypass draft access.
+Public launch needs separate approval for the repository visibility change, exact draft publication and catalog activation. Before changing visibility, review everything that will be exposed: clean Git history, source, screenshots, workflow files, logs, run metadata and existing release attachments. Keep the development repository private.
+
+After approval, make only the distribution repository public. Then manually dispatch **frame. publication** on `main` in `publish` mode with the approved version, revision, draft ID, SHA-256 and `PUBLISH frame. <version> <revision> <checksum>`.
+
+The publish job runs only for the owner on `main`, with publish mode selected and a public repository. It has a short-lived Contents-write token. It rechecks provenance, licenses, package hashes and catalog compatibility, publishes the draft, checks anonymous downloads of all seven files, then updates `plugin-catalog/manifest.json`. It never changes repository visibility itself.
+
+The stable catalog URL is `https://raw.githubusercontent.com/adityas1731/frame./plugin-catalog/manifest.json`. Check it and the installable version after activation. Keep older compatible catalog versions and their immutable assets available for updates and rollback.
+
+Release publication and catalog updates are separate GitHub operations. If anonymous verification or a later API call fails after publication, the release may already be public while the catalog stays unchanged. Stop and inspect before retrying. Do not automatically delete releases or replace published bytes.
+
+Manual initiation is not enforced independent reviewer approval. Workflow editors can change these controls. No paid feature or unprotected approval environment is used.

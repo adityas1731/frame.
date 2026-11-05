@@ -6,4 +6,4 @@
 - Update installation documentation and include real demo screenshots.
 - No intentional playback or interface changes from the preceding maintenance candidate.
 
-This is the prepared first public release. Internal development releases and operational reports are not imported.
+The release binary and matching source archives are fixed. Later publication and documentation commits do not replace them. Private development releases and operational reports are not included in this repository.
