@@ -34,7 +34,7 @@ concurrency:
 jobs:
   verify:
     if: github.event_name == 'workflow_dispatch' && github.actor == 'adityas1731'
-    runs-on: windows-2025
+    runs-on: ubuntu-24.04
     timeout-minutes: 15
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
@@ -65,7 +65,7 @@ jobs:
     if: github.event_name == 'workflow_dispatch' && github.actor == 'adityas1731' && inputs.mode == 'publish' && github.ref == 'refs/heads/main' && !github.event.repository.private
     permissions:
       contents: write
-    runs-on: windows-2025
+    runs-on: ubuntu-24.04
     timeout-minutes: 15
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
