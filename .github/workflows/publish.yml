@@ -1,0 +1,93 @@
+name: frame. publication
+on:
+  workflow_dispatch:
+    inputs:
+      mode:
+        type: choice
+        options: [verify, publish]
+        default: verify
+        required: true
+      draft:
+        description: Exact unpublished draft release ID
+        type: string
+        required: true
+      version:
+        type: string
+        required: true
+      revision:
+        description: Exact public source/workflow commit
+        type: string
+        required: true
+      sha256:
+        description: Exact approved plugin ZIP SHA-256
+        type: string
+        required: true
+      confirmation:
+        description: VERIFY or PUBLISH frame. <version> <public revision> <SHA-256>
+        type: string
+        required: true
+permissions:
+  contents: read
+concurrency:
+  group: frame-publication
+  cancel-in-progress: false
+jobs:
+  verify:
+    if: github.event_name == 'workflow_dispatch' && github.actor == 'adityas1731'
+    runs-on: windows-2025
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1
+        with:
+          node-version: 24.18.0
+      - name: Verify downloaded draft assets
+        shell: pwsh
+        env:
+          GH_TOKEN: ${{ github.token }}
+          DRAFT: ${{ inputs.draft }}
+          VERSION: ${{ inputs.version }}
+          REVISION: ${{ inputs.revision }}
+          SHA256: ${{ inputs.sha256 }}
+          CONFIRMATION: ${{ inputs.confirmation }}
+          REQUEST_MODE: ${{ inputs.mode }}
+        run: |
+          ./publication/Download-Draft.ps1 -Draft $env:DRAFT -Version $env:VERSION
+          if($env:REQUEST_MODE -notin @('verify','publish')){throw 'Invalid mode'}
+          if($env:CONFIRMATION -cne ($env:REQUEST_MODE.ToUpperInvariant()+' frame. '+$env:VERSION+' '+$env:REVISION+' '+$env:SHA256)){throw 'Exact confirmation required'}
+          $confirmation='VERIFY frame. '+$env:VERSION+' '+$env:REVISION+' '+$env:SHA256
+          node publication/publish.mjs verify .local/release-input $env:DRAFT $env:VERSION $env:REVISION $env:SHA256 $confirmation
+          if($LASTEXITCODE -ne 0){throw 'Verification failed'}
+  publish:
+    needs: verify
+    if: github.event_name == 'workflow_dispatch' && github.actor == 'adityas1731' && inputs.mode == 'publish' && github.ref == 'refs/heads/main' && !github.event.repository.private
+    permissions:
+      contents: write
+    runs-on: windows-2025
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1
+        with:
+          node-version: 24.18.0
+      - name: Reverify and publish approved release
+        shell: pwsh
+        env:
+          GH_TOKEN: ${{ github.token }}
+          DRAFT: ${{ inputs.draft }}
+          VERSION: ${{ inputs.version }}
+          REVISION: ${{ inputs.revision }}
+          SHA256: ${{ inputs.sha256 }}
+          CONFIRMATION: ${{ inputs.confirmation }}
+          REQUEST_MODE: ${{ inputs.mode }}
+        run: |
+          ./publication/Download-Draft.ps1 -Draft $env:DRAFT -Version $env:VERSION
+          if($env:REQUEST_MODE -notin @('verify','publish')){throw 'Invalid mode'}
+          if($env:CONFIRMATION -cne ($env:REQUEST_MODE.ToUpperInvariant()+' frame. '+$env:VERSION+' '+$env:REVISION+' '+$env:SHA256)){throw 'Exact confirmation required'}
+          $confirmation='PUBLISH frame. '+$env:VERSION+' '+$env:REVISION+' '+$env:SHA256
+          node publication/publish.mjs publish .local/release-input $env:DRAFT $env:VERSION $env:REVISION $env:SHA256 $confirmation
+          if($LASTEXITCODE -ne 0){throw 'Verification failed'}

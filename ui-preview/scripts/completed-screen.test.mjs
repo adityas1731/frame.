@@ -1,0 +1,13 @@
+import {test,after} from 'node:test';
+import assert from 'node:assert/strict';
+import {fileURLToPath} from 'node:url';
+import {createElement} from 'react';
+import {renderToStaticMarkup} from 'react-dom/server';
+import {createServer} from 'vite';
+const server=await createServer({root:fileURLToPath(new URL('../',import.meta.url)),configFile:false,server:{middlewareMode:true,hmr:false},appType:'custom',optimizeDeps:{noDiscovery:true,include:[]},esbuild:{jsx:'automatic'}});
+after(()=>server.close());
+const {CompletedScreen}=await server.ssrLoadModule('/src/playback/CompletedScreen.tsx');
+const props={title:'First Light',context:'The Last Horizon · Season 1 · Episode 2',description:'The expedition reaches a new coast.',duration:1200,replay:()=>assert.fail('Rendering cannot start playback'),browse:()=>{},leave:()=>{}};
+test('completed episode uses shared story hierarchy with replay and episode actions',()=>{const html=renderToStaticMarkup(createElement(CompletedScreen,{...props,active:true,episodes:true}));assert.match(html,/First Light/);assert.match(html,/Season 1 · Episode 2/);assert.match(html,/The expedition/);assert.match(html,/Episode Finished/);assert.match(html,/00:20 \/ 00:20/);assert.match(html,/Watch Again/);assert.match(html,/Browse Episodes/);assert.doesNotMatch(html,/That’s A Wrap|Back To Details|inert=""/);});
+test('completed movie offers details instead of episode controls and hides absent metadata',()=>{const html=renderToStaticMarkup(createElement(CompletedScreen,{...props,description:'',duration:NaN,active:true,episodes:false}));assert.match(html,/Finished Watching/);assert.match(html,/Back To Details/);assert.doesNotMatch(html,/Browse Episodes|NaN|pause-screen-description/);});
+test('retained hidden ending canvas cannot receive keyboard focus or expose controls to assistive tech',()=>{const html=renderToStaticMarkup(createElement(CompletedScreen,{...props,active:false,episodes:true}));assert.match(html,/aria-hidden="true"/);assert.match(html,/inert=""/);assert.match(html,/data-visible="false"/);});

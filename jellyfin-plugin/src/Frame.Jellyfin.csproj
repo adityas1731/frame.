@@ -1,0 +1,26 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <TargetFramework>net10.0</TargetFramework>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+    <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
+    <Deterministic>true</Deterministic>
+    <AssemblyName>Frame.Jellyfin</AssemblyName>
+    <RootNamespace>Frame.Jellyfin</RootNamespace>
+    <Version>$(FrameVersion)</Version>
+    <AssemblyVersion>$(FrameVersion)</AssemblyVersion>
+    <FrameWebRoot Condition="'$(FrameWebRoot)' == ''">$(MSBuildThisFileDirectory)../web/release/</FrameWebRoot>
+  </PropertyGroup>
+  <ItemGroup>
+    <FrameworkReference Include="Microsoft.AspNetCore.App" />
+    <PackageReference Include="Jellyfin.Common" Version="12.3.0" ExcludeAssets="runtime" />
+    <EmbeddedResource Include="$(FrameWebRoot)**/*">
+      <LogicalName>Frame.Web/$([System.String]::Copy('%(RecursiveDir)').Replace('\','/'))%(Filename)%(Extension)</LogicalName>
+    </EmbeddedResource>
+  </ItemGroup>
+  <Target Name="RequireVerifiedFrontend" BeforeTargets="BeforeBuild">
+    <Error Condition="'$(FrameVersion)' == ''" Text="Use the unified Frame packaging command to select a version." />
+    <Error Condition="!Exists('$(FrameWebRoot)index.html')" Text="Stage a verified Frame frontend before building the plugin." />
+    <Error Condition="!Exists('$(FrameWebRoot)build-info.json')" Text="Missing Frame build profile." />
+  </Target>
+</Project>

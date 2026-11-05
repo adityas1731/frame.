@@ -1,0 +1,43 @@
+/* Shared single-line controls. Artwork tiles, list rows and reading surfaces
+   keep their own shape rather than inheriting the form-control treatment. */
+:root body input:not([type='checkbox']):not([type='radio']):not([type='range']):not([type='color']):not([type='file']):not([type='hidden']),
+:root body select,
+:root body .frame-select,
+:root body .button,
+:root body .identify-back {
+ border-radius:999px;
+}
+:root{--control-radius:999px}
+:root[data-layout='cinema'] body button.frame-select[role='combobox'],
+.frame-player .player-track-panel .frame-select{border-radius:999px}
+:root body input:not([type='checkbox']):not([type='radio']):not([type='range']):not([type='color']):not([type='file']):not([type='hidden']) {
+ background:var(--canvas);border:1px solid var(--line-strong);color:var(--text);
+ padding:.75rem 1.1rem;min-width:0;font:inherit;
+}
+/* Inputs inside an already styled search shell need no second outline. */
+:root body :is(.global-search,.inline-search,.search-stage,.search-field,.library-search) input {
+ background:transparent!important;border:0!important;padding:0!important;border-radius:0!important;
+}
+:root body .icon-button{border-radius:50%}
+:root body textarea{border-radius:20px}
+.frame-access-modal{width:min(36rem,calc(100vw - 2rem));padding:1.6rem 1.8rem}
+.frame-access-modal>header{margin-bottom:1.4rem}
+.frame-access-modal>header h2{font-size:1.45rem;line-height:1.3}
+.frame-access{gap:22px;align-items:stretch}
+.frame-access-intro,.frame-access-status{color:var(--muted);font-size:.9rem;line-height:1.65}
+.frame-access form{align-items:end;gap:12px}
+.frame-access label{gap:12px;flex-basis:230px}
+.frame-address-heading{font-size:1.05rem;font-weight:600;color:var(--text)}
+.frame-access input{height:46px}
+.frame-access form .button{height:46px;white-space:nowrap}
+.frame-address-help{border-top:1px solid var(--line-strong);padding-top:18px;color:var(--muted);font-size:.85rem;line-height:1.65}
+.frame-address-help summary{color:var(--text);font-weight:550;cursor:pointer}
+.frame-address-help p{margin:12px 0 0}
+.frame-access-code{align-self:center}.frame-access>.button{align-self:center}
+@media(max-width:520px){.frame-access-modal{padding:1.25rem}.frame-access-modal>header h2{font-size:1.25rem}.frame-access form label{flex-basis:100%}.frame-access form>.button{margin-left:auto}}
+:root body .address-platforms{display:flex;gap:6px;flex-wrap:wrap;margin:14px 0}
+:root body .address-platforms>button{padding:7px 14px;border:1px solid transparent;border-radius:999px;background:none;color:var(--muted);font:inherit;font-size:.85rem;cursor:pointer}
+:root body .address-platforms>button[aria-pressed=true]{background:color-mix(in srgb,var(--text) 9%,transparent);color:var(--text)}
+:root body .address-platforms>button:hover{color:var(--text)}
+:root body .address-platforms>button:focus-visible{outline:2px solid var(--accent);outline-offset:3px}
+.address-platform-steps{min-height:3em}

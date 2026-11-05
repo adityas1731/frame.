@@ -1,0 +1,13 @@
+{
+  "Server": { "Id": "f0000000000000000000000000000001", "ServerName": "Synthetic 10.11.9 contract", "Version": "10.11.9" },
+  "User": { "Id": "a0000000000000000000000000000001", "Name": "Fixture viewer", "Policy": { "IsAdministrator": false, "IsDisabled": false } },
+  "Movie": {
+    "Id": "b0000000000000000000000000000001", "Name": "A fictional feature", "OriginalTitle": "An original feature", "Type": "Movie",
+    "ProductionYear": 2025, "PremiereDate": "2025-05-20T00:00:00.0000000Z", "RunTimeTicks": 72000000000,
+    "Overview": "An original fixture, not a captured server response.", "CommunityRating": 0, "CriticRating": 84, "OfficialRating": "PG",
+    "Genres": ["Drama"], "People": [{ "Id": "c0000000000000000000000000000001", "Name": "Fictional Director", "Type": "Director" }],
+    "ProviderIds": { "Tmdb": "123456", "Imdb": "tt1234567" }, "ImageTags": { "Primary": "fixture-poster", "Logo": "fixture-logo" }, "BackdropImageTags": ["fixture-backdrop"],
+    "UserData": { "IsFavorite": true, "Played": false, "PlaybackPositionTicks": 9000000000, "PlayCount": 0, "Key": "opaque-server-key" }
+  },
+  "Episode": { "Id": "b0000000000000000000000000000002", "Type": "Episode", "Name": "A special chapter", "ParentIndexNumber": 0, "IndexNumber": 1, "IndexNumberEnd": 2, "SeriesId": "b0000000000000000000000000000003", "SeriesPrimaryImageTag": "inherited-poster", "ParentBackdropItemId": "b0000000000000000000000000000003", "ParentBackdropImageTags": ["inherited-backdrop"], "Overview": null, "Genres": [], "People": [], "ProviderIds": {}, "UserData": { "Played": true, "IsFavorite": false, "PlaybackPositionTicks": 0 } }
+}

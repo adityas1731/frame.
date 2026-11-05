@@ -1,0 +1,4 @@
+import {api,session} from './test-api.mjs';
+const items=await api(`Items?userId=${session.userId}&recursive=true&includeItemTypes=Movie,Series,Episode&fields=ProviderIds,Overview,MediaSources,UserData&enableUserData=true`);
+const sessions=await api('Sessions');
+console.log(JSON.stringify({items:items.Items.map(i=>({type:i.Type,name:i.Name,id:i.Id,played:i.UserData?.Played,positionSeconds:(i.UserData?.PlaybackPositionTicks??0)/1e7,streams:i.MediaSources?.[0]?.MediaStreams?.map(s=>({type:s.Type,codec:s.Codec,index:s.Index}))})),sessions:sessions.filter(s=>s.Client==='Frame').map(s=>({playMethod:s.PlayState?.PlayMethod,paused:s.PlayState?.IsPaused,positionSeconds:(s.PlayState?.PositionTicks??0)/1e7,playing:!!s.NowPlayingItem,transcoding:s.TranscodingInfo?{videoCodec:s.TranscodingInfo.VideoCodec,audioCodec:s.TranscodingInfo.AudioCodec,bitrate:s.TranscodingInfo.Bitrate}:undefined}))},null,2));

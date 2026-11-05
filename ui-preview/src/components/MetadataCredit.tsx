@@ -1,0 +1,2 @@
+/** One unobtrusive footer credit, shared by library pages and the fullscreen episode browser. */
+export function MetadataCredit(){return <footer className="metadata-credit"><a href="https://www.tvmaze.com" target="_blank" rel="noreferrer">Episode details via TVmaze when available</a><span aria-hidden="true"> · </span><a href="https://creativecommons.org/licenses/by-sa/4.0/" target="_blank" rel="noreferrer">CC BY-SA</a></footer>;}

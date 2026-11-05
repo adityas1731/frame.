@@ -1,0 +1,45 @@
+{
+  "name": "frame-jellyfin-ui-preview",
+  "version": "1.0.3",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "test": "node --test scripts/*.test.mjs",
+    "dev": "vite --host 127.0.0.1 --port 5173 --strictPort",
+    "build": "npm run build:release",
+    "preview": "vite preview --mode release --host 127.0.0.1 --port 4173 --strictPort",
+    "typecheck": "tsc --noEmit",
+    "build:diagnostics": "npm run typecheck && vite build --mode diagnostics",
+    "build:release": "npm run typecheck && vite build --mode release",
+    "preview:diagnostics": "vite preview --mode diagnostics --host 127.0.0.1 --port 4174 --strictPort",
+    "test:release": "node --import ./scripts/release-test-flags.mjs --test scripts/*.test.mjs",
+    "verify:builds": "node scripts/verify-builds.mjs",
+    "verify:release": "node scripts/verify-builds.mjs release",
+    "verify:diagnostics": "node scripts/verify-builds.mjs diagnostics",
+    "validate:release": "npm run test:release && npm run build:release && npm run verify:release",
+    "validate:diagnostics": "npm test && npm run build:diagnostics && npm run verify:diagnostics",
+    "validate": "npm run validate:diagnostics && npm run validate:release",
+    "audit:source": "node scripts/audit-source.mjs",
+    "package:release": "npm run verify:release && node scripts/package-artifact.mjs release",
+    "package:diagnostics": "npm run verify:diagnostics && node scripts/package-artifact.mjs diagnostics",
+    "verify:artifact": "node scripts/verify-artifact.mjs",
+    "plugin:release": "npm run validate:release && node ../jellyfin-plugin/scripts/build-package.mjs release",
+    "plugin:diagnostics": "npm run validate:diagnostics && node ../jellyfin-plugin/scripts/build-package.mjs diagnostics"
+  },
+  "dependencies": {
+    "hls.js": "1.7.3",
+    "lucide-react": "1.61.0",
+    "qrcode.react": "4.2.0",
+    "react": "19.3.1",
+    "react-dom": "19.3.1",
+    "react-router": "8.5.0"
+  },
+  "devDependencies": {
+    "@types/node": "26.6.5",
+    "@types/react": "19.3.0",
+    "@types/react-dom": "19.3.0",
+    "@vitejs/plugin-react": "6.1.2",
+    "typescript": "7.0.2",
+    "vite": "8.3.5"
+  }
+}

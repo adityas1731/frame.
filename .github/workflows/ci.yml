@@ -1,0 +1,23 @@
+name: frame. CI
+on:
+  push:
+  pull_request:
+permissions:
+  contents: read
+jobs:
+  test:
+    runs-on: windows-2025
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1
+        with:
+          node-version: 24.18.0
+      - uses: actions/setup-dotnet@a98b56852c35b8e3190ac28c8c2271da59106c68
+        with:
+          dotnet-version: 10.0.403
+      - run: npm ci --ignore-scripts --audit=false --fund=false
+        working-directory: ui-preview
+      - run: node scripts/pipeline.mjs both
+      # No publisher, stored publishing credentials or Internal/report uploads.

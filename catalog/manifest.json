@@ -1,0 +1,20 @@
+[
+  {
+    "category": "General",
+    "guid": "1c38ef02-2393-4f54-a18b-fcfcbf394d65",
+    "name": "Frame",
+    "owner": "frame. contributors",
+    "overview": "frame. browser client at /Frame/Web/",
+    "description": "Customizable Jellyfin browser client. Original Jellyfin Web stays available.",
+    "versions": [
+      {
+        "version": "1.0.3.0",
+        "targetAbi": "12.3.0.0",
+        "changelog": "Source fingerprint and documentation maintenance. No intentional playback or UI changes.",
+        "timestamp": "2026-11-05T00:00:00Z",
+        "sourceUrl": "https://github.com/adityas1731/frame./releases/download/v1.0.3/frame-jellyfin-1.0.3.0-release-98d16e024c68.zip",
+        "checksum": "fefd70ec511659e92591e559471d2c7d"
+      }
+    ]
+  }
+]

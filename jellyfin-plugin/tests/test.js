@@ -1,0 +1,1 @@
+/* original empty test resource */

@@ -1,0 +1,101 @@
+/* Compact glass controls keep the artwork visible beneath each action. */
+:is(.favorite-card,.watched-toggle) {
+ display:inline-flex;align-items:center;justify-content:center;
+ width:36px;height:36px;top:10px;padding:0;
+ border:1px solid #ffffff50;border-radius:50%;color:#fff;
+ background:linear-gradient(145deg,#ffffff26,#10151d70);
+ backdrop-filter:blur(18px) saturate(140%);-webkit-backdrop-filter:blur(18px) saturate(140%);
+ box-shadow:inset 0 1px 0 #ffffff24,0 2px 8px #0003;
+ transition:background .24s ease,border-color .24s ease,transform .24s ease;
+}
+.favorite-card{left:10px}.watched-toggle{right:10px}
+:is(.favorite-card,.watched-toggle) svg{width:18px;height:18px;flex-shrink:0;filter:drop-shadow(0 1px 2px #0008)}
+:is(.favorite-card,.watched-toggle):hover{background:#ffffff32;transform:translateY(-1px);border-color:#ffffff90}
+:is(.favorite-card.is-favorite,.watched-toggle.is-watched){background:color-mix(in srgb,var(--accent) 28%,#11182080);color:var(--accent);border-color:color-mix(in srgb,var(--accent) 70%,transparent)}
+:is(.favorite-card,.watched-toggle):focus-visible{outline:2px solid var(--accent);outline-offset:3px}
+:root[data-transparency=off] :is(.favorite-card,.watched-toggle){background:var(--surface);color:var(--text)}
+:root[data-transparency=off] :is(.favorite-card.is-favorite,.watched-toggle.is-watched){color:var(--accent)}
+:root[data-layout='cinema'] body .category-grid.category-mode-minimal:not(.category-circle) .category-tile.category-minimal {
+ min-width:0;height:64px;padding:10px 18px 10px 10px;gap:12px;
+ border:1px solid #ffffff1c;
+ background:linear-gradient(130deg,#ffffff0e,#ffffff03);
+ box-shadow:inset 0 1px 0 #ffffff0a;
+ backdrop-filter:blur(16px);-webkit-backdrop-filter:blur(16px);
+ transition:background .25s ease,border-color .25s ease,transform .25s ease;
+}
+:root[data-layout='cinema'] body .category-grid.category-mode-minimal:not(.category-circle) .category-symbol{width:42px;height:42px;background:color-mix(in srgb,var(--accent) 10%,transparent)}
+:root[data-layout='cinema'] body .category-mode-minimal .category-arrow{display:none}
+:root[data-layout='cinema'] body .category-mode-minimal .category-minimal:hover{background:#ffffff12;border-color:#ffffff38;transform:translateY(-2px)}
+:root[data-transparency=off][data-layout='cinema'] body .category-mode-minimal .category-tile.category-minimal{background:var(--surface)}
+.widget-rename{flex-shrink:0;opacity:.7}.widget-rename:hover,.widget-rename:focus-visible{opacity:1}
+.rename-section-form{display:grid;gap:22px}.rename-section-form input{width:100%}
+/* Drawer actions share the same quiet, text-first treatment as navigation. */
+.sidebar .nav-item{background:transparent;border:0;box-shadow:none;text-align:left}
+.sidebar button.nav-item{width:100%;font-family:inherit;cursor:pointer}
+.sidebar .nav-item:is(:hover,.active){background:transparent;color:var(--accent)}
+.sidebar .nav-item:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+@media(max-width:700px){:is(.favorite-card,.watched-toggle){width:40px;height:40px;top:8px}.favorite-card{left:8px}.watched-toggle{right:8px}}
+@media(prefers-reduced-motion:reduce){:is(.favorite-card,.watched-toggle),:root[data-layout='cinema'] body .category-mode-minimal .category-minimal{transition:none;transform:none}}
+/* Keep each card's caption compact and aligned across mixed media. */
+:root[data-layout='cinema'] body .widget-continue .continue-info{
+ display:grid;grid-template-rows:1.5em 1.5em auto 1.4em;gap:5px;
+ align-content:start;padding:6px 4px 0;
+}
+:root[data-layout='cinema'] body .widget-continue .continue-info>.card-title{
+ display:block;margin:0;text-align:left;font-size:1.2rem;line-height:1.5;
+ font-weight:650;color:var(--text);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;transition:color 220ms ease;
+}
+.continue-info>.continue-detail{
+ margin:0;text-align:left;line-height:1.5;font-size:1.05rem;color:var(--text);text-decoration:none;
+ white-space:nowrap;overflow:hidden;text-overflow:ellipsis;
+}
+.continue-metadata{
+ display:grid;grid-template-columns:minmax(0,1fr) max-content;justify-content:stretch;align-items:baseline;
+ gap:4px 16px;margin-top:3px;padding-top:7px;border-top:1px solid var(--line);
+ color:var(--muted);font-size:.9rem;line-height:1.5;
+}
+.continue-metadata .continue-context{min-width:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.continue-metadata .continue-context:empty{display:none}
+.continue-metadata:has(.continue-context:empty){grid-template-columns:1fr}
+.continue-metadata .continue-progress{white-space:nowrap;font-variant-numeric:tabular-nums;text-align:right}
+.continue-rating{
+ display:flex;justify-content:flex-start;align-items:center;min-height:1.4em;
+ color:var(--muted);font-size:.95rem;font-variant-numeric:tabular-nums;line-height:1.4;transition:color 220ms ease;
+}
+:root[data-layout='cinema'] body .widget-continue .card-utility-row{margin-top:5px}
+.masthead-actions .favorites-access-trigger{display:inline-flex}
+.masthead-actions .favorites-access-trigger[aria-current=page]{color:var(--accent)}
+@media(max-width:700px){.masthead-actions{gap:3px}.masthead-actions .favorites-access-trigger{display:inline-flex;width:32px;height:38px}}
+.widget-editor-row .widget-delete{color:#ef8088;flex-shrink:0}
+.widget-editor-row .widget-delete:hover{color:#ffabb1;background:#ef6b7514}
+:root body .poster:has(.poster-link:focus-visible){outline:3px solid var(--accent);outline-offset:4px}
+:root body :is(.card-title,.favorite-card,.watched-toggle,.watchlist-toggle):focus-visible{outline-width:3px;outline-offset:4px}
+@media(hover:hover){
+ :root[data-layout='cinema'] body .media-card:hover .poster{
+  transform:translateY(-2px) scale(1.01);
+  box-shadow:0 12px 30px #0005,0 0 0 2px color-mix(in srgb,var(--accent) 45%,transparent);
+ }
+}
+/* The wordmark and navigation share one optical baseline. */
+:root[data-layout='cinema'] body .topbar{align-items:center}
+@media(min-width:901px){
+ :root[data-layout='cinema'] body .topbar{padding-left:max(20px,calc(var(--page-padding) / 2))}
+}
+:root[data-layout='cinema'] body nav.cinema-top-links{font-size:1.2rem;align-items:center;gap:clamp(18px,2vw,30px)}
+:root[data-layout='cinema'] body .cinema-top-links>a{font-size:inherit;line-height:1.25;font-weight:600;padding:10px 0}
+:root[data-layout='cinema'] body .masthead-brand{display:inline-flex;align-items:baseline;align-self:center;line-height:1.05;gap:0;transform:translateY(-1px)}
+:root[data-layout='cinema'] body .masthead-brand>span{font:inherit;align-self:auto;line-height:inherit;margin:0;color:var(--accent);letter-spacing:inherit}
+@media(max-width:700px){:root[data-layout='cinema'] body nav.cinema-top-links{font-size:1.1rem;gap:24px}:root[data-layout='cinema'] body .masthead-brand{align-self:auto;transform:none}}
+
+@media(hover:hover){
+ :root[data-layout='cinema'] body .widget-continue .media-card:hover .poster{transform:none;box-shadow:0 8px 22px #0003,0 0 0 2px color-mix(in srgb,var(--accent) 32%,transparent)}
+}
+
+/* Accent appears with deliberate pointer or keyboard interaction. */
+:root[data-layout='cinema'] body .widget-continue .media-card:focus-within :is(.card-title,.continue-rating){color:var(--accent)}
+@media(hover:hover){
+ :root[data-layout='cinema'] body .widget-continue .media-card:hover :is(.card-title,.continue-rating){color:var(--accent)}
+}
+@media(prefers-reduced-motion:reduce){.continue-info>.card-title,.continue-rating{transition:none}}
+
+.continue-info>.continue-detail:focus-visible{text-decoration:underline;text-underline-offset:4px}

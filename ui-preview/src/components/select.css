@@ -1,0 +1,21 @@
+:root{--control-height:42px;--control-radius:16px;--control-padding:14px;--menu-shadow:0 16px 48px #0005}
+body .frame-select{display:inline-flex;align-items:center;justify-content:space-between;gap:18px;width:max-content;max-width:100%;min-height:var(--control-height);padding:9px var(--control-padding);border:1px solid var(--line-strong);border-radius:var(--control-radius);background:color-mix(in srgb,var(--surface) 72%,transparent);color:var(--text);font:inherit;font-size:1rem;text-align:left;cursor:pointer;box-shadow:none}
+.frame-select>span{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.frame-select>svg{flex-shrink:0}
+body .frame-select:hover,body .frame-select[aria-expanded=true]{background:var(--surface-hover);border-color:color-mix(in srgb,var(--accent) 50%,var(--line-strong))}
+.frame-select:focus-visible{outline:2px solid var(--accent);outline-offset:3px}.frame-select:disabled{opacity:.45;cursor:default}
+.frame-select-menu{position:fixed;z-index:2500;overflow:auto;overscroll-behavior:contain;padding:6px;box-sizing:border-box;border:1px solid var(--line-strong);border-radius:18px;background:var(--surface);color:var(--text);box-shadow:var(--menu-shadow);font:1rem/1.5 var(--font-body,system-ui);scrollbar-width:thin}
+.frame-select-option{display:flex;justify-content:space-between;align-items:center;gap:18px;min-height:42px;padding:9px 12px;border-radius:12px;cursor:pointer;overflow-wrap:anywhere}
+.frame-select-option[data-active=true]{background:var(--surface-hover)}.frame-select-option[aria-selected=true]{color:var(--accent);background:var(--accent-tint)}.frame-select-option[aria-disabled=true]{opacity:.4;cursor:default}
+body .studio-field>.frame-select,body .studio-add>.frame-select{flex:none;align-self:flex-start;width:max-content;max-width:100%}
+body .filter-select:has(>.frame-select){padding:0;border:0;background:none;box-shadow:none}body .filter-select:has(>.frame-select)>svg{display:none}
+body .frame-select.select-control{width:max-content;padding:9px var(--control-padding);border-radius:var(--control-radius);min-height:var(--control-height)}
+.frame-player .frame-select{color:#f7f7f9;border-color:#ffffff20;background:#ffffff09;font-size:14px}
+.frame-player .frame-select-menu{background:#22242c;color:#fff;--surface-hover:#343640;--accent-tint:#ffffff12;--accent:#fff;--line-strong:#ffffff20}
+@media(max-width:600px){:root{--control-height:44px}.frame-select-menu{font-size:14px}}
+
+@media(max-width:600px){.frame-select-option{min-height:44px}}
+
+/* Outrank legacy native-select rules while sharing one geometry everywhere. */
+:root[data-layout='cinema'] body button.frame-select[role=combobox]{width:max-content;max-width:100%;min-height:var(--control-height);padding:9px var(--control-padding);border:1px solid var(--line-strong);border-radius:var(--control-radius);background:color-mix(in srgb,var(--surface) 72%,transparent);font-size:1rem;box-shadow:none}
+.frame-player{--surface:#23252d;--surface-hover:#333641;--line-strong:#ffffff25;--text:#f7f7f9}
+:root[data-layout='cinema'] body button.frame-select[role=combobox]:is(:hover,[aria-expanded=true]){background:var(--surface-hover);border-color:color-mix(in srgb,var(--accent) 50%,var(--line-strong))}

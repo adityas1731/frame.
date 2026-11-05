@@ -1,0 +1,5 @@
+import {ChevronLeft,ChevronRight} from 'lucide-react';
+export function CarouselControls({titles,active,progress=0,select,previous,next}:{titles:string[];active:number;progress?:number;select:(i:number)=>void;previous:()=>void;next:()=>void}){
+ if(titles.length<2)return null;
+ return <div className="carousel-controls" aria-label="Featured title controls"><button className="icon-button" aria-label="Previous featured title" onClick={e=>{previous();if(e.detail)e.currentTarget.blur();}}><ChevronLeft size={19}/></button><div className="carousel-bars">{titles.map((title,i)=><button key={`${title}:${i}`} aria-label={`Feature ${title}`} aria-pressed={i===active} onClick={e=>{select(i);if(e.detail)e.currentTarget.blur();}}><span style={{transform:`scaleX(${i===active?progress:i<active?1:0})`}}/></button>)}</div><span className="carousel-count">{active+1} / {titles.length}</span><button className="icon-button" aria-label="Next featured title" onClick={e=>{next();if(e.detail)e.currentTarget.blur();}}><ChevronRight size={19}/></button></div>;
+}

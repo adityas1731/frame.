@@ -1,0 +1,96 @@
+/* Portrait media composition. Desktop poster preferences must not force a
+   single huge card, or turn 16:9 backdrops into tall portrait crops. */
+@media (max-width: 600px) {
+  :root[data-layout='cinema'] body .media-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 24px 14px;
+  }
+  :root[data-layout='cinema'] body .media-grid .card-title {
+    font-size: 1rem;
+    line-height: 1.4;
+    overflow-wrap: anywhere;
+  }
+  :root[data-layout='cinema'] body .media-grid .card-meta {
+    font-size: .85rem;
+    flex-wrap: wrap;
+    gap: 4px 8px;
+  }
+  :root[data-layout='cinema'] body .media-grid .poster {
+    aspect-ratio: 2 / 3;
+  }
+  :root[data-layout='cinema'] body .cinema-hero,
+  :root[data-layout='cinema'] body .collection-page-hero > .collection-spotlight,
+  :root[data-layout='cinema'] body .detail-hero {
+    height: auto;
+    min-height: 0;
+    max-height: none;
+    padding-top: calc(var(--masthead-height) + 56.25vw);
+    padding-bottom: 72px;
+  }
+  :root[data-layout='cinema'] body .cinema-backdrop,
+  :root[data-layout='cinema'] body .collection-spotlight-hero > .collection-spotlight-art,
+  :root[data-layout='cinema'] body .detail-hero > .detail-visual {
+    inset: var(--masthead-height) 0 auto;
+    width: 100%;
+    height: 56.25vw;
+    margin: 0;
+    aspect-ratio: 16 / 9;
+  }
+  :root[data-layout='cinema'] body :is(.cinema-backdrop,.collection-spotlight-hero > .collection-spotlight-art,.detail-hero > .detail-visual) :is(img,.artwork) {
+    object-fit: cover !important;
+    object-position: center !important;
+  }
+  /* Keep the existing complete-poster fallback when no landscape art exists. */
+  :root[data-layout='cinema'] body .detail-poster-fallback img {
+    object-fit: contain !important;
+  }
+  :root[data-layout='cinema'] body .cinema-shade,
+  :root[data-layout='cinema'] body .collection-spotlight-hero::after,
+  :root[data-layout='cinema'] body .detail-hero > .detail-shade {
+    inset: var(--masthead-height) 0 auto;
+    height: 56.25vw;
+    background: linear-gradient(0deg,var(--canvas),transparent 28%);
+    pointer-events: none;
+  }
+  :root[data-layout='cinema'] body .cinema-copy,
+  :root[data-layout='cinema'] body .collection-spotlight-hero > .collection-spotlight-copy,
+  :root[data-layout='cinema'] body .detail-heading {
+    position: relative;
+    inset: auto;
+    width: 100%;
+    max-width: none;
+    height: auto;
+    margin: 0;
+    padding: 20px var(--page-padding) 0;
+    align-items: flex-start;
+    text-align: left;
+    gap: 12px;
+  }
+  :root[data-layout='cinema'] body :is(.cinema-copy h2,.collection-spotlight-hero h2,.detail-heading h1) {
+    font-size: clamp(1.8rem,7vw,2.4rem);
+    line-height: 1.12;
+    max-width: 100%;
+    margin: 0;
+  }
+  :root[data-layout='cinema'] body :is(.cinema-copy .hero-meta,.detail-meta) {
+    justify-content: flex-start;
+    flex-wrap: wrap;
+    gap: 6px 12px;
+    font-size: .9rem;
+    margin: 0;
+  }
+  :root[data-layout='cinema'] body .hero-buttons {
+    justify-content: flex-start;
+  }
+  :root[data-layout='cinema'] body .cinema-feature-nav {
+    bottom: 16px;
+  }
+  :root[data-layout='cinema'] body .collection-spotlight-hero > .carousel-controls {
+    bottom: 16px;
+  }
+  :root[data-layout='cinema'] body .detail-hero { padding-bottom: 28px; }
+  :root[data-layout='cinema'] body .detail-heading { display: flex; flex-direction: column; gap: 16px; }
+  :root[data-layout='cinema'] body .detail-actions { flex-wrap: wrap; }
+  :root[data-layout='cinema'] body .home-refresh { top: calc(var(--masthead-height) + 10px); }
+  :root[data-layout='cinema'] body .home-widgets { margin-top: 0; }
+}

@@ -1,0 +1,35 @@
+/* Keep hit areas, text and watched controls still. Animate only the clipped image. */
+:root[data-layout='cinema'] body .episode,
+:root[data-layout='cinema'] body .episode:hover {background:none; transform:none}
+:root[data-layout='cinema'] body .episode-art {transform:none; transition:none}
+:is(.episode-art,.episode-browser-art) img {
+  transform:scale(1); transform-origin:center; backface-visibility:hidden;
+  transition:transform 440ms cubic-bezier(.2,.65,.3,1),filter 360ms ease;
+}
+.episode-description > strong {transition:color 260ms ease}
+.episode-browser-row {transition:background-color 300ms ease,border-color 300ms ease}
+@media(hover:hover) and (pointer:fine) {
+  .episode-open:hover .episode-art img,.episode-browser-row:hover .episode-browser-art img {transform:scale(1.025); filter:brightness(1.045)}
+  .episode-open:hover .episode-description > strong {color:var(--accent)}
+}
+.episode-open:focus-visible .episode-art img,.episode-browser-row:focus-visible .episode-browser-art img {transform:scale(1.025)}
+.credit-source {display:block; width:fit-content; margin-top:7px; font-size:.85rem; font-weight:400; color:var(--muted); text-decoration:underline; text-underline-offset:3px}
+.credit-source:hover {color:var(--accent)}
+@media(prefers-reduced-motion:reduce) {
+  :is(.episode-art,.episode-browser-art) img,.episode-description > strong,.episode-browser-row {transition:none!important;transform:none!important;filter:none!important}
+}
+:root[data-motion='reduced'] :is(.episode-art,.episode-browser-art) img {transition:none!important;transform:none!important;filter:none!important}
+
+/* Season belongs to the episode heading, while card sizing remains at the right. */
+.episode-heading-title{display:flex;align-items:center;flex-wrap:wrap;gap:18px;min-width:0}
+.episode-heading-title h2{margin:0}
+:root[data-layout='cinema'] body .episodes-panel .episode-heading-title>button.frame-select.season-picker[role=combobox]{min-height:52px;min-width:172px;padding:10px 18px;border:1px solid transparent;border-radius:999px;background:color-mix(in srgb,var(--surface) 45%,transparent);font-size:1.2rem;font-weight:600;letter-spacing:-.025em;gap:24px;transition:background-color .2s ease,border-color .2s ease}
+:root[data-layout='cinema'] body .episodes-panel .episode-heading-title>button.frame-select.season-picker[role=combobox]:is(:hover,[aria-expanded=true]){background:var(--surface-hover);border-color:var(--line-strong)}
+.season-picker>svg{width:20px;height:20px;color:var(--muted);transition:transform .2s ease}
+.season-picker[aria-expanded=true]>svg{transform:rotate(180deg)}
+.season-picker-menu{padding:8px;border-radius:20px;background:color-mix(in srgb,var(--surface) 94%,transparent);backdrop-filter:blur(20px);box-shadow:0 16px 48px #0005}
+.season-picker-menu .frame-select-option{position:relative;min-height:54px;padding:13px 16px;border-radius:14px;font-size:1.1rem;letter-spacing:-.015em}
+.season-picker-menu .frame-select-option[aria-selected=true]{font-weight:600}
+.season-picker-menu .frame-select-option>svg{width:18px;height:18px}
+@media(prefers-reduced-motion:reduce){.season-picker,.season-picker>svg{transition:none!important}}
+@media(max-width:600px){.episodes-panel>.section-heading{align-items:flex-start;flex-wrap:wrap;gap:16px}.episode-heading-title{gap:12px}.episodes-panel>.section-heading>.episode-size-control{margin-left:auto}.episode-size-control>span{font-size:.85rem}}

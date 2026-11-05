@@ -1,0 +1,15 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup><OutputType>Exe</OutputType><TargetFramework>net10.0</TargetFramework><ImplicitUsings>enable</ImplicitUsings><Nullable>enable</Nullable><TreatWarningsAsErrors>true</TreatWarningsAsErrors><RestorePackagesWithLockFile>true</RestorePackagesWithLockFile></PropertyGroup>
+  <ItemGroup>
+    <FrameworkReference Include="Microsoft.AspNetCore.App" />
+    <Compile Include="../src/WebAssets.cs" Link="WebAssets.cs" />
+    <Compile Include="../src/FrameWebController.cs" Link="FrameWebController.cs" />
+    <Compile Include="../src/RelayPolicy.cs" Link="RelayPolicy.cs" />
+    <Compile Include="../src/RelayGrants.cs" Link="RelayGrants.cs" />
+    <Compile Include="../src/RelayEndpoint.cs" Link="RelayEndpoint.cs" />
+    <EmbeddedResource Include="test-index.html" LogicalName="Frame.Web/index.html" />
+    <EmbeddedResource Include="test.js" LogicalName="Frame.Web/assets/test-hash.js" />
+    <EmbeddedResource Include="test-worker.js" LogicalName="Frame.Web/frame-stream-sw.js" />
+    <EmbeddedResource Include="test-hidden.txt" LogicalName="Frame.Web/.env" />
+  </ItemGroup>
+</Project>

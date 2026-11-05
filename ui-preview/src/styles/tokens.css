@@ -1,0 +1,25 @@
+:root {
+  color-scheme: dark;
+  font-family: Inter, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  font-synthesis: none;
+  text-rendering: optimizeLegibility;
+  -webkit-font-smoothing: antialiased;
+  --canvas: #17191b; --sidebar: #121416; --surface: #202326; --surface-hover: #2a2e31; --surface-strong: #303538;
+  --text: #f0f0ed; --muted: #969c9d; --subtle: #676f72; --line: #ffffff0e; --line-strong: #ffffff19;
+  --accent: #c6e5a2; --accent-ink: #202c16; --accent-tint: #c6e5a211;
+  --sidebar-width: 218px; --page-padding: 40px; --poster-width: 172px; --grid-min: 148px; --grid-gap: 20px;
+  --section-gap: 38px; --radius: 12px; --ease: cubic-bezier(.22,.68,0,1.02); --shadow: 0 12px 35px #0003;
+}
+:root[data-theme='midnight'] { --canvas: #101721; --sidebar: #0c111a; --surface: #1a2432; --surface-hover: #253346; --surface-strong: #2b3d50; }
+:root[data-theme='forest'] { --canvas: #15201d; --sidebar: #101916; --surface: #1d2c26; --surface-hover: #2b3c32; --surface-strong: #34483c; }
+:root[data-theme='plum'] { --canvas: #201923; --sidebar: #17131c; --surface: #2c2331; --surface-hover: #3a2d40; --surface-strong: #48374c; }
+:root[data-accent='blue'] { --accent: #a8c9f0; --accent-ink: #16283d; --accent-tint: #a8c9f014; }
+:root[data-accent='rose'] { --accent: #e5b2be; --accent-ink: #392029; --accent-tint: #e5b2be14; }
+:root[data-navigation='compact'] { --sidebar-width: 82px; }
+:root[data-poster='small'] { --poster-width: 144px; --grid-min: 126px; }
+:root[data-poster='large'] { --poster-width: 208px; --grid-min: 185px; }
+:root[data-density='compact'] { --grid-gap: 13px; --section-gap: 28px; --page-padding: 30px; }
+:root[data-font='humanist'] { font-family: 'Trebuchet MS', 'Segoe UI', sans-serif; }
+:root[data-font='editorial'] { font-family: Georgia, 'Times New Roman', serif; }
+:root[data-motion='reduced'] *, :root[data-motion='reduced'] *::before, :root[data-motion='reduced'] *::after { animation: none !important; transition: none !important; scroll-behavior: auto !important; }
+@media (prefers-reduced-motion: reduce) { *, *::before, *::after { animation: none !important; transition: none !important; scroll-behavior: auto !important; } }

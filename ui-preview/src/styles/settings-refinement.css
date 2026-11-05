@@ -1,0 +1,119 @@
+/* Settings hierarchy is independent of artwork sizing and the chosen font stack. */
+body .settings-page .page-heading{margin-bottom:36px}
+body .settings-page .page-heading h1{font-size:clamp(2rem,3.2vw,3rem);letter-spacing:-.045em;line-height:1.12}
+body .settings-page .settings-main{gap:32px}
+body .settings-page .settings-main>.settings-section{padding:clamp(22px,3vw,40px);background:color-mix(in srgb,var(--surface) 22%,var(--canvas));border-radius:24px}
+body .settings-page .settings-section-title{padding-bottom:24px;margin-bottom:24px;gap:16px}
+body .settings-page .settings-section-title h2{font-size:clamp(1.4rem,1.8vw,1.7rem);font-weight:650;letter-spacing:-.025em;line-height:1.3}
+body .settings-page .settings-section-title::before{width:32px;height:32px;background:transparent;border:1px solid var(--line-strong);color:var(--muted)}
+body .settings-page :is(.studio-panel,.settings-group){background:transparent;border:0;padding:0;border-radius:0}
+body .settings-page .studio-field{gap:12px;font-size:1rem}
+body .settings-page .studio-field>span:first-child{font-size:1.05rem;font-weight:600;letter-spacing:-.01em;line-height:1.45;color:var(--text)}
+body .settings-page .studio-field>small{font-weight:400;font-size:.9rem;line-height:1.65;max-width:60ch}
+body .settings-page .studio-fields{gap:28px 36px;margin:26px 0}
+body .settings-page .studio-toggle-row{padding:22px 0;gap:24px}
+body .settings-page .studio-toggle-row strong{font-size:1.05rem;font-weight:600;letter-spacing:-.01em}
+body .settings-page .studio-toggle-row p{font-size:.95rem;max-width:65ch;line-height:1.65}
+body .settings-page :is(.settings-subheading,.studio-panel>h3,.home-presets>h3,.category-editor>h3){font-size:1.25rem;font-weight:650;letter-spacing:-.02em;line-height:1.4;margin:32px 0 18px}
+body .settings-page .visual-picker>legend{font-size:1.2rem;font-weight:650;letter-spacing:-.02em}
+body .settings-page .studio-intro{max-width:75ch;line-height:1.7;margin-bottom:28px}
+body .settings-page .studio-badge{letter-spacing:0;font-size:.9rem;font-weight:500}
+body .settings-page .widget-config{margin-top:36px;padding-top:30px;border-top:1px solid var(--line-strong)}
+body .settings-page .widget-config>header{margin-bottom:28px;align-items:center}
+body .settings-page .section-editor-label{display:block;font-size:1.3rem;font-weight:650;color:var(--text);letter-spacing:-.025em}
+body .settings-page .widget-config>header h3{margin:8px 0 6px;font-size:1.05rem;color:var(--accent);font-weight:550;letter-spacing:0}
+body .settings-page .widget-config>header p{font-size:.95rem;margin:0;line-height:1.65}
+body .settings-page .widget-config>header>.text-link{font-size:.9rem;color:var(--muted);align-self:flex-start}
+body .settings-page .widget-config>header>.text-link:hover{color:var(--text)}
+body .settings-page .widget-config>.studio-field{max-width:680px}
+body .settings-page .widget-config .genre-setting{min-width:0}
+body .settings-page .widget-select strong{font-size:1.05rem;font-weight:600}
+body .settings-page .widget-select small{font-size:.9rem;letter-spacing:0}
+body .settings-page .studio-settings-nav>a{border-radius:999px;font-size:.95rem}
+body .settings-page .studio-settings-nav>a[aria-current=location]{color:var(--accent);background:color-mix(in srgb,var(--accent) 8%,transparent);font-weight:600}
+body .settings-page .studio-settings-nav>a[aria-current=location]>span{color:var(--accent)}
+.device-revoke{display:inline-flex;align-items:center;gap:7px;align-self:flex-end;width:fit-content;padding:7px 0;border:0;background:transparent;color:#efaaa5;font:inherit;cursor:pointer}
+.device-revoke:hover{text-decoration:underline;text-underline-offset:4px}
+.device-revoke:focus-visible{outline:2px solid currentColor;outline-offset:4px;border-radius:6px}
+.device-revoke-modal>p{color:var(--muted);line-height:1.7;margin:20px 0}
+.device-revoke-modal>p strong{color:var(--text)}
+.device-revoke-actions{display:flex;justify-content:flex-end;flex-wrap:wrap;gap:12px;margin-top:24px}
+body .device-revoke-actions .device-revoke-confirm{background:#a93636;color:#fff;border:0}
+.device-revoke-error{color:#efaaa5!important}
+.device-notice{color:var(--muted);line-height:1.6}
+@media(max-width:600px){.device-revoke{align-self:flex-start}}
+body .settings-page .settings-subheading{border-top:1px solid var(--line);padding-top:28px}
+body .settings-page .widget-config .studio-fields{align-items:start}
+body .settings-page .genre-setting>[role=alert]{font-size:.9rem;color:var(--muted);line-height:1.6;margin-top:10px}
+@media(max-width:600px){
+ body .settings-page .settings-main>.settings-section{padding:22px 18px;border-radius:20px}
+ body .settings-page .settings-section-title{gap:12px;padding-bottom:18px;margin-bottom:20px}
+ body .settings-page .settings-section-title h2{font-size:1.3rem}
+ body .settings-page .studio-fields{gap:24px;margin:24px 0}
+ body .settings-page .widget-config>header{gap:14px}
+ body .settings-page .section-editor-label{font-size:1.2rem}
+ body .settings-page .widget-config>header>.text-link{margin-left:auto}
+}
+body .settings-page .widget-config>header h3.section-editor-label{font-size:1.3rem;font-weight:650;color:var(--text);margin:0;letter-spacing:-.025em}
+body .settings-page .widget-config>header .section-editor-name{font-size:1.05rem;color:var(--accent);font-weight:550;margin:8px 0 6px}
+body .settings-page .editor-group-heading{font-size:1.13rem;font-weight:600;letter-spacing:-.015em;margin:30px 0 0;padding-top:24px;border-top:1px solid var(--line)}
+body .settings-page .widget-config>.studio-fields:first-of-type{margin-top:22px}
+body .settings-page .settings-section-title h2{color:var(--accent);font-size:clamp(1.75rem,2.25vw,2.125rem)}
+body .settings-page .settings-section-title::before{color:var(--accent);border-color:color-mix(in srgb,var(--accent) 35%,var(--line))}
+.banner-count-ticks{display:flex;justify-content:space-between;color:var(--muted);font-size:.85rem}
+.section-edit-footer>span{color:var(--muted);font-size:.9rem}
+body .settings-page .widget-editor-row{padding:16px 12px;gap:12px;border-radius:18px;background:transparent}
+body .settings-page .widget-editor-row.selected{border-color:var(--line-strong)}
+body .settings-page .widget-editor-row .widget-rename{color:var(--text);background:color-mix(in srgb,var(--text) 6%,transparent)}
+body .settings-page .widget-editor-row .widget-rename:hover{color:var(--accent);background:var(--accent-tint)}
+@media(max-width:600px){body .settings-page .settings-section-title h2{font-size:1.625rem}.section-edit-footer>span{font-size:.85rem}}
+.widget-editor-item{min-width:0}
+.section-editor-inline{padding:0 20px 18px;margin:0 0 18px;border-bottom:1px solid var(--line);animation:section-editor-reveal .2s ease-out}
+body .settings-page .section-editor-inline .widget-config{margin:0;padding:22px 0 0;border:0}
+body .settings-page .section-editor-inline .widget-config>header{display:none}
+.section-editor-inline .studio-fields{grid-template-columns:repeat(2,minmax(0,1fr));gap:20px}
+.section-editor-inline input:not([type=range],[type=checkbox]){max-width:100%;box-sizing:border-box}
+.section-editor-inline .section-edit-footer{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-top:20px;padding-top:16px;border-top:1px solid var(--line)}
+.section-editor-inline .title-options{max-height:300px}
+.section-editor-inline .category-detail{grid-template-columns:minmax(0,1fr)}
+.section-editor-inline .category-editor-preview{position:relative;top:auto}
+@keyframes section-editor-reveal{from{opacity:0;transform:translateY(-4px)}to{opacity:1;transform:translateY(0)}}
+@media(max-width:600px){.section-editor-inline{padding:0 4px 18px}.section-editor-inline .studio-fields{grid-template-columns:minmax(0,1fr)}}
+@media(prefers-reduced-motion:reduce){.section-editor-inline{animation:none}}
+
+/* Section editor blueprint. Scoped here before extending it to other settings. */
+.home-studio .studio-workspace.is-editing{grid-template-columns:minmax(0,1fr)}
+.home-studio .studio-workspace.is-editing>.home-layout-preview{display:none}
+body .settings-page .home-studio .widget-editor-row{padding:18px 16px;gap:14px;border-color:var(--line);border-radius:18px}
+body .settings-page .home-studio .widget-editor-row.is-open{background:color-mix(in srgb,var(--text) 3%,transparent);border-color:var(--line-strong);margin-bottom:0;border-radius:18px 18px 0 0;border-bottom-color:transparent}
+body .settings-page .home-studio .widget-select strong{font-size:1.12rem;line-height:1.45;font-weight:600}
+body .settings-page .home-studio .widget-select small{font-size:.9rem;margin-top:3px;line-height:1.5}
+body .settings-page .home-studio .widget-editor-row .widget-rename{width:36px;height:36px;border:0;outline:none;box-shadow:none;background:transparent;color:var(--muted);transition:background .18s ease,color .18s ease}
+body .settings-page .home-studio .widget-editor-row .widget-rename:is(:hover,[aria-expanded=true]){background:color-mix(in srgb,var(--text) 7%,transparent);color:var(--text)}
+body .settings-page .home-studio .widget-editor-row .widget-rename:focus-visible{outline:2px solid var(--text);outline-offset:3px}
+body .settings-page .home-studio .section-editor-inline{padding:26px clamp(18px,3vw,36px) 22px;margin:0 0 20px;border:1px solid var(--line-strong);border-top:0;border-radius:0 0 18px 18px;background:color-mix(in srgb,var(--text) 2%,transparent)}
+body .settings-page .home-studio .section-editor-inline .widget-config{padding:0}
+.section-setup-heading{display:flex;align-items:baseline;justify-content:space-between;flex-wrap:wrap;gap:8px 20px;margin-bottom:24px}
+body .settings-page .section-setup-heading h3{font-size:1.3rem;font-weight:600;letter-spacing:-.025em;line-height:1.4;margin:0;color:var(--text)}
+.section-setup-heading>span{font-size:.9rem;color:var(--muted);line-height:1.6}
+body .settings-page .home-studio .section-editor-inline .studio-fields{gap:24px 32px;margin:22px 0 28px}
+body .settings-page .home-studio .section-editor-inline .section-identity{margin:0 0 28px}
+body .settings-page .home-studio .section-editor-inline .studio-field{gap:9px;font-size:1.05rem}
+body .settings-page .home-studio .section-editor-inline .studio-field>span:first-child{font-size:1rem;font-weight:500;line-height:1.5;color:var(--text);letter-spacing:0}
+body .settings-page .home-studio .section-editor-inline .studio-field input:not([type=range],[type=checkbox]){min-height:46px;padding:11px 18px;background:color-mix(in srgb,var(--canvas) 75%,transparent);border:1px solid var(--line);border-radius:999px;font-size:1.05rem;line-height:1.5}
+body .settings-page .home-studio .section-editor-inline .studio-field input[type=number]{width:140px}
+body .settings-page .home-studio .section-editor-inline .frame-select{min-height:46px;font-size:1.05rem;padding:11px 18px;border-color:var(--line);background:color-mix(in srgb,var(--canvas) 65%,transparent)}
+body .settings-page .home-studio .section-editor-inline .editor-group-heading{font-size:1.15rem;font-weight:600;color:var(--text);margin:28px 0 0;padding-top:24px;border-color:var(--line);letter-spacing:-.015em}
+body .settings-page .home-studio .section-editor-inline .studio-field small{font-size:.9rem;line-height:1.6}
+.section-advanced{border-top:1px solid var(--line);margin-top:28px;padding-top:20px}
+.section-advanced>summary{cursor:pointer;font-size:1.05rem;font-weight:550;line-height:1.6;list-style:disclosure-closed;list-style-position:inside;color:var(--text)}
+.section-advanced[open]>summary{list-style-type:disclosure-open}
+.section-advanced>summary>span{display:inline-block;margin-left:16px;color:var(--muted);font-size:.9rem;font-weight:400}
+.section-editor-inline .section-edit-footer>span{font-size:.85rem;color:var(--muted)}
+.section-editor-inline .section-edit-footer>.text-link{font-size:1rem;font-weight:600;padding:9px 18px;border-radius:999px;background:color-mix(in srgb,var(--text) 6%,transparent);color:var(--text)}
+@media(max-width:600px){
+ body .settings-page .home-studio .section-editor-inline{padding:22px 16px 18px}
+ body .settings-page .home-studio .section-editor-inline .studio-fields{grid-template-columns:minmax(0,1fr);gap:22px}
+ .section-setup-heading{display:block}.section-setup-heading>span{display:block;margin-top:5px}
+ .section-advanced>summary>span{display:block;margin:5px 0 0 18px}
+}

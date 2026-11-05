@@ -1,0 +1,45 @@
+/* Artwork stays in place. Only the image responds to pointer and remote focus. */
+:root[data-layout='cinema'] body :is(.poster,.episode-art,.episode-browser-art,.collection-spotlight,.category-tile){
+ border:0;outline:none;box-shadow:none;
+}
+:root[data-layout='cinema'] body .media-card :is(.poster:hover,.poster:focus-within),
+:root[data-layout='cinema'] body .media-card:hover .poster,
+:root[data-layout='cinema'] body .widget-continue .media-card:hover .poster,
+:root[data-layout='cinema'] body .poster:has(.poster-link:focus-visible){
+ transform:none;border:0;outline:none;box-shadow:none;
+}
+:root[data-layout='cinema'] body :is(.poster,.episode-art,.episode-browser-art,.hero,.collection-spotlight,.detail-hero,.category-tile) :is(img,svg.artwork){
+ transition:transform 460ms cubic-bezier(.2,.65,.3,1),filter 350ms ease;
+}
+@media(hover:hover) and (pointer:fine){
+ :root[data-layout='cinema'] body :is(.poster,.episode-art,.episode-browser-art,.hero,.collection-spotlight,.detail-hero,.category-tile):hover :is(img,svg.artwork){
+  transform:scale(1.018);filter:brightness(1.045);
+ }
+}
+:root[data-layout='cinema'] body :is(.episode-open,.episode-browser-row,.poster-link,.category-tile):focus-visible{outline:none}
+:root[data-layout='cinema'] body :is(.poster,.episode-art,.episode-browser-art,.hero,.collection-spotlight,.detail-hero,.category-tile):has(:focus-visible) :is(img,svg.artwork),
+:root[data-layout='cinema'] body :is(.episode-open,.episode-browser-row):focus-visible :is(img,svg.artwork){
+ transform:scale(1.018);filter:brightness(1.12);
+}
+:root[data-layout='cinema'] body .media-card:has(:focus-visible) .card-title,
+:root[data-layout='cinema'] body .episode-open:focus-visible .episode-description>strong{
+ text-decoration:underline;text-underline-offset:5px;text-decoration-thickness:2px;
+}
+@media(prefers-reduced-motion:reduce){
+ :root[data-layout='cinema'] body :is(.poster,.episode-art,.episode-browser-art,.hero,.collection-spotlight,.detail-hero,.category-tile) :is(img,svg.artwork){transition:none;transform:none}
+}
+:root[data-motion='reduced'] body :is(.poster,.episode-art,.episode-browser-art,.hero,.collection-spotlight,.detail-hero,.category-tile) :is(img,svg.artwork){transition:none;transform:none}
+
+/* Every presentation uses the same measured whole-card width. */
+.home-widget{--widget-target:var(--widget-width)}
+.home-widget.widget-backdrops{--widget-target:calc(var(--widget-width) * 1.5)}
+body .home-widget .widget-items{position:relative;padding:10px 0 22px;margin:-10px 0 0;align-items:stretch}
+body .home-widget .widget-size-probe{position:absolute;visibility:hidden;pointer-events:none;width:var(--widget-target);height:0;inset:0 auto auto 0}
+body .home-widget .widget-items>.media-card{flex:0 0 var(--widget-card-width,var(--widget-target));width:var(--widget-card-width,var(--widget-target));min-width:0;max-width:100%;scroll-snap-align:start}
+body .home-widget.widget-grid .widget-items{grid-template-columns:repeat(var(--widget-columns,1),minmax(0,1fr))}
+body .home-widget.widget-grid .widget-items>.media-card{width:100%}
+body .home-widget.widget-carousel .widget-items{scroll-snap-type:x mandatory}
+body .home-widget.widget-row .widget-items{scroll-snap-type:x mandatory}
+:root[data-layout='cinema'] body .home-widget .widget-items{padding:10px 0 22px;margin:-10px 0 0}
+:root[data-layout='cinema'] body .home-widget.widget-backdrops .widget-items>.media-card{flex-basis:var(--widget-card-width,var(--widget-target));width:var(--widget-card-width,var(--widget-target))}
+:root[data-layout='cinema'] body .home-widget.widget-grid .widget-items>.media-card{width:100%}

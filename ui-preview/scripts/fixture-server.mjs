@@ -1,0 +1,12 @@
+/** Loopback-only synthetic Jellyfin for compiled-profile browser checks. Never proxies a real server. */
+import {createServer} from 'node:http';
+import {createFixtureFetch} from '../src/jellyfin/fixtures.ts';
+import {fixtureMedia} from '../dev/media-proxy.ts';
+import {mediaPathAllowed} from '../public/frame-stream-policy.js';
+const fetchFixture=createFixtureFetch('10.11.9'),media=fixtureMedia();
+function sanitize(value){if(Array.isArray(value))return value.map(sanitize);if(value&&typeof value==='object')return Object.fromEntries(Object.entries(value).filter(([key])=>key!=='ProviderIds').map(([key,v])=>[key,sanitize(v)]));return value;}
+const server=createServer(async(req,res)=>{const origin=req.headers.origin;if(origin&&!/^http:\/\/(127\.0\.0\.1|localhost):(5173|4173|4174)$/.test(origin)){res.writeHead(403);res.end();return;}if(origin)res.setHeader('Access-Control-Allow-Origin',origin);res.setHeader('Vary','Origin');res.setHeader('Access-Control-Allow-Headers','Authorization,Content-Type,Range,If-Range');res.setHeader('Access-Control-Allow-Methods','GET,HEAD,POST,DELETE,OPTIONS');res.setHeader('Access-Control-Expose-Headers','Content-Range,Accept-Ranges,Content-Length,Content-Type');res.setHeader('Cache-Control','no-store');if(req.method==='OPTIONS'){res.writeHead(204);res.end();return;}
+ try{const url=new URL(req.url,'http://127.0.0.1:8097');if(url.pathname.startsWith('/Videos/')){const relative=url.pathname.slice(1),id=relative.split('/')[1];if(!id||!mediaPathAllowed(relative,id)){res.writeHead(403);res.end();return;}req.url='/__frame_fixture'+req.url;await media(req,res,()=>{res.writeHead(404);res.end();});return;}
+ const chunks=[];for await(const chunk of req)chunks.push(chunk);const response=await fetchFixture(url.href,{method:req.method,headers:req.headers,body:chunks.length?Buffer.concat(chunks).toString():undefined});res.statusCode=response.status;response.headers.forEach((v,k)=>res.setHeader(k,v));if(response.status===204||req.method==='HEAD'){res.end();return;}if(response.headers.get('Content-Type')?.includes('application/json')){const data=url.pathname.endsWith('/RemoteImages')?{Images:[]}:sanitize(await response.json());res.end(JSON.stringify(data));}else res.end(Buffer.from(await response.arrayBuffer()));
+ }catch{if(!res.headersSent)res.writeHead(500);res.end('Synthetic fixture unavailable.');}});
+server.listen(8097,'127.0.0.1',()=>console.log('Original Frame fixtures only: http://127.0.0.1:8097. No real server proxy.'));

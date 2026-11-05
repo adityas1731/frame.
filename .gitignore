@@ -1,0 +1,14 @@
+node_modules/
+dist/
+bin/
+obj/
+web/
+artifacts/
+.local/
+.toolchain/
+.test-instance/
+.env*
+*.log
+*.db
+*.sqlite*
+*.tsbuildinfo
