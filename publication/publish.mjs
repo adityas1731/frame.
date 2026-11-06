@@ -6,6 +6,10 @@ import {fileURLToPath,pathToFileURL} from 'node:url';
 import path from 'node:path';
 export const repository='adityas1731/frame.';
 export const hash=bytes=>createHash('sha256').update(bytes).digest('hex');
+export function releaseDataFile(name) {
+ if(typeof name!=='string'||! /^[a-zA-Z0-9][a-zA-Z0-9.-]*\.json$/.test(name)||name.includes('..'))throw Error('Unsafe release data file');
+ return new URL('../release/'+name,import.meta.url);
+}
 export function selection({mode='verify',actor,event,ref,revision,version,sha256,confirmation},receipt,repo) {
  if(!['verify','publish'].includes(mode)||actor!=='adityas1731'||event!=='workflow_dispatch')throw Error('Manual owner action required');
  if(!/^[a-f0-9]{40}$/.test(revision)||!/^\d+\.\d+\.\d+\.\d+$/.test(version)||! /^[a-f0-9]{64}$/.test(sha256))throw Error('Exact version/revision/checksum required');
@@ -23,7 +27,7 @@ export async function verifyFiles(directory,receipt) {
   const bytes=await readFile(path.join(directory,asset.name));if(hash(bytes)!==asset.sha256)throw Error('Asset checksum mismatch');
  }
  execFileSync('pwsh',['-NoProfile','-File','jellyfin-plugin/scripts/verify-package.ps1','-Archive',path.join(directory,receipt.binary.name),'-Profile','release','-ExpectedVersion',receipt.version,'-ExpectedSha256',receipt.binary.sha256,'-ExpectedCommit',receipt.originalBuildRevision],{stdio:'pipe'});
- const sourceIndex=JSON.parse(await readFile(new URL('../release/source-files.json',import.meta.url)));
+ const sourceIndex=JSON.parse(await readFile(releaseDataFile(receipt.source.mapFile??'source-files.json')));
  for(const entry of sourceIndex.implementationInputs){
   if(path.isAbsolute(entry.path)||entry.path.split(/[\\/]/).includes('..'))throw Error('Unsafe source mapping');
   if(hash(await readFile(path.resolve(entry.path)))!==entry.sha256)throw Error('Public implementation source differs from reviewed binary source');
@@ -47,7 +51,7 @@ export async function publish({options,receipt,api,files,directory,anonymous}) {
   const asset=release.assets.find(a=>a.name===expected.name);if(!asset||asset.size!==(await files(expected.name)).length)throw Error('Draft asset mismatch');
   if(hash(await api(`/releases/assets/${asset.id}`,'GET',undefined,true))!==expected.sha256)throw Error('Uploaded asset checksum mismatch');
  }
- const catalog=JSON.parse(await readFile(new URL('../catalog/manifest.json',import.meta.url)));
+ const catalog=JSON.parse(await readFile(receipt.catalogFile?releaseDataFile(receipt.catalogFile):new URL('../catalog/manifest.json',import.meta.url)));
  validateCatalog(catalog,receipt,await files(receipt.binary.name));
  const existing=await api('/contents/manifest.json?ref=plugin-catalog','GET',undefined,false,true);
  if(existing){

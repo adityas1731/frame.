@@ -1,0 +1,69 @@
+{
+  "format": "frame-public-release-v1",
+  "version": "1.0.4.0",
+  "tag": "v1.0.4",
+  "repository": "adityas1731/frame.",
+  "originalBuildRevision": "f0a0ec8b0de258110817a50fdfe8acea0e1642b4",
+  "binary": {
+    "name": "frame-jellyfin-1.0.4.0-release-292d42c7bc9e.zip",
+    "sha256": "292d42c7bc9e08fb77dca8d36cf779911cee0ad692d48bb6b282c96c5f8a2d11",
+    "role": "binary"
+  },
+  "source": {
+    "name": "frame-source-1.0.4.0-public-9a5a72f3938a.zip",
+    "sha256": "9a5a72f3938aa2f7d83e5937cc33ec40387796a43f8077ee0f8c3de03e6b4058",
+    "role": "source",
+    "implementationInputs": 205,
+    "sourceFingerprint": "412ae1244ade0d28fbcd416a68f5e8145d3a9bb67429fdad81423e17d99ed352",
+    "mapFile": "source-files-1.0.4.0.json"
+  },
+  "dependencySource": {
+    "name": "frame-dependency-sources-1.0.3.0-7ef872415794.zip",
+    "sha256": "7ef872415794883385bd0dd17824cdf3037904327b2be2ec1d5e282177841970",
+    "lockedPackages": 12,
+    "upstreamTrees": 9
+  },
+  "compatibility": {
+    "targetAbi": "12.3.0.0",
+    "pluginGuid": "1c38ef02-2393-4f54-a18b-fcfcbf394d65"
+  },
+  "assets": [
+    {
+      "name": "frame-jellyfin-1.0.4.0-release-292d42c7bc9e.zip",
+      "sha256": "292d42c7bc9e08fb77dca8d36cf779911cee0ad692d48bb6b282c96c5f8a2d11",
+      "role": "binary"
+    },
+    {
+      "name": "frame-source-1.0.4.0-public-9a5a72f3938a.zip",
+      "sha256": "9a5a72f3938aa2f7d83e5937cc33ec40387796a43f8077ee0f8c3de03e6b4058",
+      "role": "source"
+    },
+    {
+      "name": "frame-dependency-sources-1.0.3.0-7ef872415794.zip",
+      "sha256": "7ef872415794883385bd0dd17824cdf3037904327b2be2ec1d5e282177841970",
+      "role": "dependency-source"
+    },
+    {
+      "name": "LICENSE",
+      "sha256": "3972dc9744f6499f0f9b2dbf76696f2ae7ad8af9b23dde66d6af86c9dfb36986",
+      "role": "license-notices"
+    },
+    {
+      "name": "UI-THIRD-PARTY-NOTICES.md",
+      "sha256": "c0f086498654524e3bf3f18e847df749d52e466f0cbfe7f4dfac75a00e11d9a8",
+      "role": "license-notices"
+    },
+    {
+      "name": "PLUGIN-THIRD-PARTY-NOTICES.md",
+      "sha256": "085711f2488bba28b5a39ad8f9ac6c228c74cc6a42ca85a26ee9d926a094dccf",
+      "role": "license-notices"
+    },
+    {
+      "name": "SHA256SUMS",
+      "sha256": "3a47fc928a5cc73b6430e5460a40d6ddbe0d7b766a155ca7fc1c26d588c5d44c",
+      "role": "checksums"
+    }
+  ],
+  "publicationApproved": false,
+  "catalogFile": "catalog-1.0.4.0.json"
+}

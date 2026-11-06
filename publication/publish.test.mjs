@@ -4,9 +4,11 @@ import {readFile} from 'node:fs/promises';
 import path from 'node:path';
 import {createServer} from 'node:http';
 import {stage} from './stage.mjs';
-import {publish,repository,validateCatalog,assertRequestMethod} from './publish.mjs';
+import {publish,repository,validateCatalog,assertRequestMethod,releaseDataFile} from './publish.mjs';
 const directory=process.env.FRAME_RELEASE_INPUT;
-const receipt=directory?JSON.parse(await readFile('release/1.0.3.0.json')):null;
+const version=process.env.FRAME_RELEASE_VERSION??'1.0.3.0';
+if(!/^\d+\.\d+\.\d+\.\d+$/.test(version))throw Error('Invalid test release version');
+const receipt=directory?JSON.parse(await readFile(releaseDataFile(version+'.json'))):null;
 const revision='a'.repeat(40);
 const options=(mode='verify')=>({mode,draft:'1',actor:'adityas1731',event:'workflow_dispatch',ref:'refs/heads/main',revision,version:receipt.version,sha256:receipt.binary.sha256,confirmation:`${mode.toUpperCase()} frame. ${receipt.version} ${revision} ${receipt.binary.sha256}`});
 async function fixture(){
@@ -36,7 +38,7 @@ async function fixture(){
 test('real HTTP rehearsal: draft staging, read-only verification, explicit publication and catalog ordering',{skip:!directory},async()=>{
  const f=await fixture();try{await f.staged();assert.equal(f.release.draft,true);assert.equal(f.release.assets.length,7);const count=f.writes.length;
  const args={receipt,directory,api:f.api,files:f.files,anonymous:f.anonymous};
- assert.deepEqual(await publish({...args,options:options()}),{mode:'verify',remoteWrites:0,version:'1.0.3.0'});assert.equal(f.writes.length,count);
+ assert.deepEqual(await publish({...args,options:options()}),{mode:'verify',remoteWrites:0,version:receipt.version});assert.equal(f.writes.length,count);
  await publish({...args,options:options('publish')});assert.equal(f.release.draft,false);assert.equal(f.writes.at(-1).url,'/contents/manifest.json');assert.ok(f.catalog.content);
  }finally{await f.close();}
 });
@@ -55,7 +57,7 @@ test('ordinary CI has no publisher or write permission; publication is owner/man
 });
 
 test('catalog rejects wrong ABI, URL, identity, version or checksum',{skip:!directory},async()=>{
- const catalog=JSON.parse(await readFile('catalog/manifest.json'));const binary=await readFile(path.join(directory,receipt.binary.name));assert.equal(validateCatalog(catalog,receipt,binary),true);
+ const catalog=JSON.parse(await readFile(receipt.catalogFile?releaseDataFile(receipt.catalogFile):'catalog/manifest.json'));const binary=await readFile(path.join(directory,receipt.binary.name));assert.equal(validateCatalog(catalog,receipt,binary),true);
  for(const patch of [{targetAbi:'99.0.0.0'},{sourceUrl:'https://example.invalid/wrong.zip'},{version:'1.0.2.0'},{checksum:'0'.repeat(32)}]){const changed=structuredClone(catalog);Object.assign(changed[0].versions[0],patch);assert.throws(()=>validateCatalog(changed,receipt,binary));}
  const changed=structuredClone(catalog);changed[0].guid='wrong';assert.throws(()=>validateCatalog(changed,receipt,binary));
 });
@@ -64,4 +66,9 @@ test('verify-only REST client rejects every mutation method',()=>{
  assert.doesNotThrow(()=>assertRequestMethod('verify','GET'));
  for(const method of ['POST','PUT','PATCH','DELETE'])assert.throws(()=>assertRequestMethod('verify',method),/cannot issue publication mutations/);
  assert.doesNotThrow(()=>assertRequestMethod('publish','PATCH'));
+});
+
+test('versioned release data cannot escape the release directory',()=>{
+ assert.ok(releaseDataFile('catalog-1.0.4.0.json').pathname.endsWith('/release/catalog-1.0.4.0.json'));
+ for(const name of ['../catalog/manifest.json','/tmp/receipt.json','https://example.invalid/a.json','..\\receipt.json',null,'a..json'])assert.throws(()=>releaseDataFile(name),/Unsafe release data/);
 });
