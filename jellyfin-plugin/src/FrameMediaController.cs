@@ -164,10 +164,10 @@ public sealed class FrameMediaController(IServer server) : ControllerBase
             var playlist = relative.Split('?')[0].EndsWith(".m3u8", StringComparison.OrdinalIgnoreCase);
             if (playlist && !HttpMethods.IsHead(Request.Method))
             {
-                if (response.Content.Headers.ContentLength > 1_000_000) { Response.StatusCode = 502; return; }
+                if (response.Content.Headers.ContentLength > RelayPolicy.MaxPlaylistBytes) { Response.StatusCode = 502; return; }
                 await using var body = await response.Content.ReadAsStreamAsync(cancellation.Token).ConfigureAwait(false);
                 using var buffer = new MemoryStream(); var bytes = new byte[8192]; int read;
-                while ((read = await body.ReadAsync(bytes, cancellation.Token).ConfigureAwait(false)) > 0) { if (buffer.Length + read > 1_000_000) throw new FormatException(); buffer.Write(bytes, 0, read); }
+                while ((read = await body.ReadAsync(bytes, cancellation.Token).ConfigureAwait(false)) > 0) { if (buffer.Length + read > RelayPolicy.MaxPlaylistBytes) throw new FormatException(); buffer.Write(bytes, 0, read); }
                 var text = RelayPolicy.Playlist(Encoding.UTF8.GetString(buffer.ToArray()), new Uri(url), grant.ServerBase, grant.PathBase, id, grant.Item);
                 Response.ContentType = "application/vnd.apple.mpegurl"; await Response.WriteAsync(text, cancellation.Token).ConfigureAwait(false); return;
             }

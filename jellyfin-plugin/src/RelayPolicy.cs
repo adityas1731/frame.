@@ -8,6 +8,9 @@ namespace Frame.Jellyfin;
 /// <summary>Only the active item's video resources; never a general URL proxy.</summary>
 public static partial class RelayPolicy
 {
+    // VOD playlists repeat the stream options on every segment. Feature-length
+    // films routinely exceed 1 MB; retain a finite UTF-8 budget for upstream data.
+    public const int MaxPlaylistBytes = 8 * 1024 * 1024;
     [GeneratedRegex("^(stream\\.(mp4|m4v|webm)|master\\.m3u8|main\\.m3u8|hls1/[a-z0-9_-]+/-?[0-9]+\\.(ts|mp4|m4s)|hls/[a-z0-9_-]+/(stream\\.m3u8|[0-9]+\\.(ts|mp4|m4s))|[a-z0-9_-]+/subtitles/[0-9]+/([0-9]+/)?stream\\.vtt)$", RegexOptions.IgnoreCase | RegexOptions.CultureInvariant)]
     private static partial Regex Tail();
     [GeneratedRegex("^[a-zA-Z0-9_-]{1,12000}$")]
@@ -36,7 +39,7 @@ public static partial class RelayPolicy
 
     public static string Playlist(string text, Uri upstream, string serverBase, string prefix, string grant, Guid item)
     {
-        if (!text.TrimStart().StartsWith("#EXTM3U", StringComparison.Ordinal) || text.Length > 1_000_000) throw new FormatException();
+        if (!text.TrimStart().StartsWith("#EXTM3U", StringComparison.Ordinal) || Encoding.UTF8.GetByteCount(text) > MaxPlaylistBytes) throw new FormatException();
         string Rewrite(string raw)
         {
             var uri = new Uri(upstream, raw);

@@ -33,6 +33,19 @@ static class RelayTests
         var upstream = new Uri("http://127.0.0.1:18096/jellyfin/" + root + "/master.m3u8");
         var text = RelayPolicy.Playlist("#EXTM3U\n#EXT-X-MAP:URI=\"hls1/main/-1.mp4?api_key=secret\"\nhls1/main/0.ts?ApiKey=secret\n", upstream, "http://127.0.0.1:18096/jellyfin", "/jellyfin", "grant", item);
         check(!text.Contains("secret") && text.Split('\n')[2].StartsWith("/jellyfin/Frame/Media/grant/stream?resource="), "relay rewrites HLS map and segment under BaseUrl without credentials");
+        // Long VOD playlists repeat negotiation options on every segment URL.
+        // A feature-length film can exceed 1 MB before any segment is requested.
+        var longPlaylist = "#EXTM3U\n" + string.Concat(Enumerable.Range(0, 1700).Select(n =>
+            "#EXTINF:6.000,\nhls1/main/" + n + ".ts?VideoCodec=h264&TranscodeReasons=" + new string('x', 650) + "\n"));
+        check(Encoding.UTF8.GetByteCount(longPlaylist) > 1_000_000, "long VOD fixture exceeds the previous playlist limit");
+        var longRewritten = RelayPolicy.Playlist(longPlaylist, upstream, "http://127.0.0.1:18096/jellyfin", "/jellyfin", "grant", item);
+        check(longRewritten.Split('\n').Count(line => line.StartsWith("/jellyfin/Frame/Media/grant/stream?resource=")) == 1700,
+            "feature-length VOD playlist rewrites every segment without truncation");
+        foreach (var excessive in new[] { "#EXTM3U\n" + new string(' ', 8 * 1024 * 1024), "#EXTM3U\n#" + new string('\u00e9', 4 * 1024 * 1024) })
+        {
+            var rejected = false; try { RelayPolicy.Playlist(excessive, upstream, "http://127.0.0.1:18096/jellyfin", "", "grant", item); } catch (FormatException) { rejected = true; }
+            check(rejected, "playlist byte budget remains bounded including multibyte text");
+        }
         foreach (var uri in new[] { "http://outside.invalid/stream.ts", "/Videos/" + other.ToString("N") + "/master.m3u8", "../../../System/Info" })
         {
             var rejected = false; try { RelayPolicy.Playlist("#EXTM3U\n" + uri, upstream, "http://127.0.0.1:18096/jellyfin", "/jellyfin", "grant", item); } catch (FormatException) { rejected = true; }

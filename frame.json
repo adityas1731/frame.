@@ -1,7 +1,7 @@
 {
-  "version": "1.0.3.0",
+  "version": "1.0.4.0",
   "jellyfinAbi": "12.3.0.0",
   "node": "24.18.0",
   "dotnet": "10.0.403",
-  "releaseNotes": "Packaging maintenance: fingerprint clean source from committed Git blobs so checkout line endings cannot change package provenance. Includes installation documentation and real demo screenshots. No intentional playback or UI changes."
+  "releaseNotes": "Fix HLS playback failures on long movies when the child playlist exceeds 1 MB. Retain an 8 MiB UTF-8 playlist limit and existing relay authorization and resource restrictions."
 }
