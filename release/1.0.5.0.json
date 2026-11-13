@@ -5,8 +5,8 @@
   "repository": "adityas1731/frame.",
   "originalBuildRevision": "8043c3b36b45392fec1a65c6dd13ec3566c07b9d",
   "binary": {
-    "name": "frame-jellyfin-1.0.5.0-release-25da5d577a5c.zip",
-    "sha256": "25da5d577a5c5111b2bf6c17f2cccc863aa02dbdfcf968c309ebe5ebfedfa482",
+    "name": "frame-jellyfin-1.0.5.0-release-2b5736d2d384.zip",
+    "sha256": "2b5736d2d384561003b71a23fa9aff92738e78153a196841ffbd4930d67630dc",
     "role": "binary"
   },
   "source": {
@@ -29,8 +29,8 @@
   },
   "assets": [
     {
-      "name": "frame-jellyfin-1.0.5.0-release-25da5d577a5c.zip",
-      "sha256": "25da5d577a5c5111b2bf6c17f2cccc863aa02dbdfcf968c309ebe5ebfedfa482",
+      "name": "frame-jellyfin-1.0.5.0-release-2b5736d2d384.zip",
+      "sha256": "2b5736d2d384561003b71a23fa9aff92738e78153a196841ffbd4930d67630dc",
       "role": "binary"
     },
     {
@@ -60,7 +60,7 @@
     },
     {
       "name": "SHA256SUMS",
-      "sha256": "564668c271f25c62accd0113a125f69ab622dae32d83ff0e4475d3beb2923366",
+      "sha256": "ba1853c108f187fdee9c863ba23bccad5144da1a09d01caaf9f70723a53743a9",
       "role": "checksums"
     }
   ],
