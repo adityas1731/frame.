@@ -1,5 +1,5 @@
 export interface ServerInfo { Id: string; ServerName?: string; Version: string }
-export interface User { Id: string; Name?: string; Policy?: { IsAdministrator?: boolean; IsDisabled?: boolean } }
+export interface User { Id: string; Name?: string; Policy?: { IsAdministrator?: boolean; IsDisabled?: boolean; EnableSubtitleManagement?: boolean } }
 export interface Session { server: ServerInfo; baseUrl: string; user: User; token: string; deviceId: string; created: number }
 export interface ItemDto {
   Id: string; Name?: string; OriginalTitle?: string; Type?: string; CollectionType?: string; Overview?: string | null; Taglines?: string[];

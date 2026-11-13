@@ -1,0 +1,39 @@
+/* Keep navigation anchored while only the routed content enters. */
+html { scrollbar-gutter: stable; }
+body .page-transition { animation: section-enter 360ms cubic-bezier(.22,.61,.36,1) backwards; }
+@keyframes section-enter { from { opacity: 0; } to { opacity: 1; } }
+
+/* These surfaces may arrive after the route's initial loading state. Animate
+   the group, rather than scheduling a separate animation for every card. */
+.page-transition :is(.media-grid,.widget-items:has(>.media-card),.category-grid,.detail-body,.settings-layout,.watchlist-empty) {
+  animation: collection-enter 420ms cubic-bezier(.22,.61,.36,1) backwards;
+}
+@keyframes collection-enter {
+  from { opacity: 0; transform: translateY(5px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+.page-transition :is(.server-artwork img,.online-backdrop) {
+  animation: artwork-enter 380ms ease-out backwards;
+}
+@keyframes artwork-enter { from { opacity: 0; } to { opacity: 1; } }
+
+/* Use the real hero's responsive geometry, including its mobile copy area. */
+.hero-placeholder { pointer-events: none; }
+.hero-placeholder :is(.cinema-copy,.collection-spotlight-copy) { animation: none !important; }
+.hero-placeholder-title,.hero-placeholder-description,.hero-placeholder-action {
+  background: color-mix(in srgb,var(--text) 6%,var(--canvas));
+  border-radius: 12px;
+}
+.hero-placeholder-title { width: min(70%,420px); height: 3.5rem; }
+.hero-placeholder-description { width: min(90%,500px); height: 4.5rem; margin: 18px 0; }
+.hero-placeholder-action { width: 140px; height: 48px; border-radius: 999px; }
+@media(max-width:600px) {
+  .hero-placeholder :is(.cinema-copy,.collection-spotlight-copy) { min-height: 270px; }
+}
+
+/* Mirror both the system preference and frame.'s own motion setting. */
+:root[data-motion='reduced'] .page-transition,
+:root[data-motion='reduced'] .page-transition * { animation: none !important; }
+@media(prefers-reduced-motion:reduce) {
+  body .page-transition, .page-transition * { animation: none !important; }
+}

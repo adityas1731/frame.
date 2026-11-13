@@ -1,4 +1,5 @@
-import {useServerFeatured} from '../state/featured';
+import {HeroPlaceholder} from '../components/HeroPlaceholder';
+import {useServerFeaturedState} from '../state/featured';
 import {HomeWidgets} from '../studio/Widgets';
 import {FeaturedServerArtwork} from '../components/FeaturedServerArtwork';
 import {FeaturedHero} from '../components/FeaturedHero';
@@ -13,11 +14,12 @@ export function LiveHome() {
   const { client, session } = useConnection();
   const data = useRemote('home', () => client!.items(session!.user.Id, { sort: 'DateCreated', limit: 40 }));
   const items = data.data?.Items ?? [];
-  const featured=useServerFeatured('discover');
+  const {items:featured,loading:featuredLoading}=useServerFeaturedState('discover');
   const carousel = useFeaturedCarousel(featured.length);
   const item = featured[carousel.active];
   return <div className={`home-page ${!item?'home-no-featured':''}`}>
-    <RequestStatus {...data} stale={!!data.data}/>
+    <RequestStatus {...data} loading={data.loading&&!featuredLoading} stale={!!data.data}/>
+    {featuredLoading&&!item&&<HeroPlaceholder/>}
     {item && <FeaturedHero story={{ id: item.Id, title: itemTitle(item), description: item.Overview ?? '', metadata: [item.ProductionYear ? String(item.ProductionYear) : '', item.OfficialRating ?? '', item.Type==='Series'?'':runtime(item) ?? ''], genres: item.Genres }} artwork={<FeaturedServerArtwork item={item}/>} titles={featured.map(itemTitle)} {...carousel} actions={<>
       <Link className="button hero-primary" to={`/item/${encodeURIComponent(item.Id)}`}>Explore</Link>
     </>}/>}

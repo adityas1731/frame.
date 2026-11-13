@@ -7,23 +7,34 @@ import type {Session} from '../jellyfin/types.ts';
 import {browserSupport,deviceProfile,type BrowserSupport} from './capabilities.ts';
 import {createMediaGateway,type MediaGateway} from './gateway.ts';
 import {clampTicks,secondsToTicks,type Phase} from './foundation.ts';
-import {attachHls,probeHls,type HlsFailure} from './hls.ts';
+import {attachHls,probeHls,type HlsFailure,type HlsAttachment} from './hls.ts';
 import {runtimePlan,negotiatedHls} from './planner.ts';
 import {synchronizedCaptionText,subtitleDelaySeconds,reconcileCaptionTracks} from './subtitles.ts';
 import {nativeCaptionTimeline} from './nativeCaptions.ts';
+import type {CustomSubtitle} from './customSubtitles.ts';
 import {PlaybackDiagnostics,type DiagnosticEvent,type DiagnosticStage} from './diagnostics.ts';
 import {PlaybackError,playbackBody,type PlaybackInfo,type PlaybackSelection,type PlayingReport,type RuntimePlan} from './protocol.ts';
-export interface PlayerSnapshot {phase:Phase;position:number;duration:number;paused:boolean;volume:number;muted:boolean;plan?:RuntimePlan;error?:string;notice?:string;canHls:boolean;videoWidth?:number;videoHeight?:number;subtitleDelay?:number;captions?:string[];diagnostics?:DiagnosticEvent[]}
+export interface AdditionalSubtitle {id:string;label:string;language?:string;forced?:boolean;source:'hls'|'native'}
+export interface PlayerSnapshot {phase:Phase;position:number;duration:number;paused:boolean;volume:number;muted:boolean;plan?:RuntimePlan;error?:string;notice?:string;canHls:boolean;videoWidth?:number;videoHeight?:number;subtitleDelay?:number;captions?:string[];customSubtitle?:{name:string;language?:string;revision?:number};customSubtitleSelected?:boolean;additionalSubtitles?:AdditionalSubtitle[];additionalSubtitleSelected?:string;diagnostics?:DiagnosticEvent[]}
 export interface RuntimeDependencies {support?:BrowserSupport;gateway?:typeof createMediaGateway;hls?:typeof attachHls;updated?:()=>void;startupTimeoutMs?:number}
 /** Runtime lifecycle: one owner per media element, serial reports, generation-safe source replacement. */
 export class PlaybackRuntime {
  private client:JellyfinClient;private session:Session;private video:HTMLVideoElement;private itemId:string;
- private controller=new AbortController();private generation=0;private gateway?:MediaGateway;private detachHls?:()=>void;
+ private controller=new AbortController();private generation=0;private gateway?:MediaGateway;private detachHls?:HlsAttachment;
  private support:BrowserSupport;private listeners=new Set<(state:PlayerSnapshot)=>void>();private removeEvents:(()=>void)[]=[];
  private queue=Promise.resolve();private timer?:ReturnType<typeof setInterval>;private started=false;private stopped=new Set<string>();
  private dependencies:RuntimeDependencies;private finishes=new Map<string,Promise<void>>();
  private captionTimer?:ReturnType<typeof setInterval>;private captionDelays=new Map<string,number>();
  private nativeFullscreen=false;private nativeCaptionTrack?:TextTrack;
+ private customSubtitle?:CustomSubtitle&{url:string};private customSelected=false;private customRevision=0;
+ private additionalSelected?:string;private nativeTracks=new Map<string,TextTrack>();private hlsCues:VTTCue[]=[];
+ private captionTrack(){return this.additionalSelected?.startsWith('hls:')?{cues:this.hlsCues as unknown as TextTrackCueList,activeCues:null}:this.additionalSelected?this.nativeTracks.get(this.additionalSelected):this.track?.track;}
+ private discoverNativeTracks(){
+  const discovered:AdditionalSubtitle[]=[];this.nativeTracks.clear();
+  Array.from(this.video.textTracks).forEach((track,index)=>{if(track===this.track?.track||track===this.nativeCaptionTrack||!['subtitles','captions'].includes(track.kind))return;const id=`native:${index}`;this.nativeTracks.set(id,track);discovered.push({id,label:track.label||track.language||`Subtitle ${index+1}`,language:track.language,source:'native'});});
+  const additionalSubtitles=[...(this.state.additionalSubtitles??[]).filter(t=>t.source==='hls'),...discovered];
+  if(JSON.stringify(additionalSubtitles)!==JSON.stringify(this.state.additionalSubtitles??[]))this.publish({additionalSubtitles});
+ }
  private startupTimer?:ReturnType<typeof setTimeout>;
  private clearStartup(){if(this.startupTimer)clearTimeout(this.startupTimer);this.startupTimer=undefined;}
  private armStartup(){
@@ -56,7 +67,7 @@ export class PlaybackRuntime {
   this.listen('resize',()=>this.dimensions());
   // Embedded tracks can arrive after loadedmetadata or be reselected by the browser.
   // Keep native drawing off so only frame.'s styled, synchronized overlay is visible.
-  const tracks=this.video.textTracks;const reconcile=()=>reconcileCaptionTracks(Array.from(tracks),this.track?.track,this.nativeFullscreen?this.nativeCaptionTrack:undefined);
+  const tracks=this.video.textTracks;const reconcile=()=>{this.discoverNativeTracks();reconcileCaptionTracks(Array.from(tracks),this.additionalSelected?this.nativeTracks.get(this.additionalSelected):this.track?.track,this.nativeFullscreen?this.nativeCaptionTrack:undefined);};
   if(typeof tracks.addEventListener==='function'){tracks.addEventListener('addtrack',reconcile);tracks.addEventListener('change',reconcile);this.removeEvents.push(()=>{tracks.removeEventListener('addtrack',reconcile);tracks.removeEventListener('change',reconcile);});}
   const begin=()=>{this.nativeFullscreen=true;this.syncNativeCaptions();};const end=()=>{this.nativeFullscreen=false;this.clearNativeCaptions();reconcile();};
   this.video.addEventListener('webkitbeginfullscreen',begin);this.video.addEventListener('webkitendfullscreen',end);
@@ -65,10 +76,10 @@ export class PlaybackRuntime {
   this.listen('playing',()=>{this.dimensions();this.clearStartup();__FRAME_DIAGNOSTICS__&&this.log('playing',{readyState:this.video.readyState});if(this.suppress||!this.state.plan||this.stopped.has(this.state.plan.sessionId))return;this.publish({phase:'playing',paused:false,position:this.position(),error:undefined,notice:undefined});if(!this.started&&this.state.plan){this.started=true;this.send('started');}else this.progress('unpause',true);});
   this.listen('pause',()=>{this.clearStartup();if(this.suppress||this.video.ended)return;this.publish({phase:'paused',paused:true,position:this.position()});this.progress('pause',true);});
   this.listen('waiting',()=>{__FRAME_DIAGNOSTICS__&&this.log('waiting',{readyState:this.video.readyState,networkState:this.video.networkState});if(!this.suppress){this.publish({phase:'buffering'});if(this.state.plan)this.armStartup();}});
-  this.listen('timeupdate',()=>{if(this.suppress||!this.state.plan)return;this.publish({position:this.position(),captions:this.track?synchronizedCaptionText(this.track.track,this.video.currentTime,this.state.plan?.offset??0,this.state.subtitleDelay??0):[]});this.rememberPosition();this.progress('timeupdate');});
-  this.listen('seeked',()=>{if(this.suppress)return;this.publish({phase:this.video.paused?'paused':'playing',position:this.position(),captions:this.track?synchronizedCaptionText(this.track.track,this.video.currentTime,this.state.plan?.offset??0,this.state.subtitleDelay??0):[]});this.progress('seek',true);});
+  this.listen('timeupdate',()=>{if(this.suppress||!this.state.plan)return;this.publish({position:this.position()});this.refreshCaptions();this.rememberPosition();this.progress('timeupdate');});
+  this.listen('seeked',()=>{if(this.suppress)return;this.publish({phase:this.video.paused?'paused':'playing',position:this.position()});this.refreshCaptions();this.progress('seek',true);});
   this.listen('volumechange',()=>{this.publish({volume:this.video.volume,muted:this.video.muted});this.progress('volumechange',true);});
-  this.listen('ended',()=>{this.clearStartup();if(this.suppress)return;this.publish({phase:'ended',paused:true,position:this.state.duration});this.rememberPosition(true);void this.finishPlan();});
+  this.listen('ended',()=>{this.clearStartup();if(this.suppress)return;this.publish({phase:'ended',paused:true,position:this.state.duration});this.rememberPosition(true);this.removeCustomSubtitle();void this.finishPlan();});
   // MSE recovery belongs to hls.js. A transient native error must not destroy its
   // session before the engine has recovered or emitted its terminal error.
   this.listen('error',()=>{if(!this.suppress&&this.video.error&&(this.state.plan?.mode==='direct'||this.support.nativeHls||!!this.state.plan&&!negotiatedHls(this.itemId,this.state.plan.stream)))void this.mediaError();});
@@ -87,7 +98,7 @@ export class PlaybackRuntime {
   this.queue=this.queue.then(async()=>{const latest=this.pendingProgress;this.pendingProgress=undefined;this.progressQueued=false;if(latest)await this.client.reportPlayback('progress',latest);}).catch(failed);
  }
  private progress(event:PlayingReport['EventName'],force=false){if(this.disposed||this.suppress||!this.started||this.state.phase==='ended'||event==='volumechange'&&Date.now()-this.lastReport<250||!force&&Date.now()-this.lastReport<10000)return;this.send('progress',event);}
- private detach(){this.clearStartup();this.suppress=true;this.clearNativeCaptions();this.detachHls?.();this.detachHls=undefined;this.track?.remove();this.track=undefined;this.publish({captions:[]});this.video.pause();this.video.removeAttribute('src');this.video.load();this.suppress=false;}
+ private detach(){this.clearStartup();this.suppress=true;this.clearNativeCaptions();this.detachHls?.();this.detachHls=undefined;this.track?.remove();this.track=undefined;this.hlsCues=[];this.nativeTracks.clear();this.publish({captions:[],additionalSubtitles:[]});this.video.pause();this.video.removeAttribute('src');this.video.load();this.suppress=false;}
  private async finishPlan(unloading=false){
   const plan=this.state.plan;if(!plan)return;if(this.stopped.has(plan.sessionId))return this.finishes.get(plan.sessionId);
   this.rememberPosition(this.state.phase==='ended');this.stopped.add(plan.sessionId);const started=this.started;this.started=false;const report=this.report(plan);this.client.invalidate();
@@ -129,32 +140,38 @@ export class PlaybackRuntime {
    this.armStartup();
    // A native "maybe" must not bypass a supported hls.js/MSE decoder. Native-only
    // devices still use the cookie-authorized media element path.
-   if(plan.mode!=='direct'&&negotiatedHls(this.itemId,plan.stream)&&this.support.mseHls){const detach=await (this.dependencies.hls??attachHls)(this.video,stream,plan.selection.startTicks/10000000,reason=>{if(turn===this.generation&&!signal.aborted)void this.mediaError(reason);},signal,event=>__FRAME_DIAGNOSTICS__&&this.log('hls-error',event),this.gateway.authorizeHls);if(signal.aborted||turn!==this.generation){detach();return;}this.detachHls=detach;}
+   if(plan.mode!=='direct'&&negotiatedHls(this.itemId,plan.stream)&&this.support.mseHls){const detach=await (this.dependencies.hls??attachHls)(this.video,stream,plan.selection.startTicks/10000000,reason=>{if(turn===this.generation&&!signal.aborted)void this.mediaError(reason);},signal,event=>__FRAME_DIAGNOSTICS__&&this.log('hls-error',event),this.gateway.authorizeHls,{
+    tracks:tracks=>{if(turn!==this.generation||signal.aborted)return -1;this.publish({additionalSubtitles:[...tracks,...(this.state.additionalSubtitles??[]).filter(t=>t.source==='native')]});return this.additionalSelected?.startsWith('hls:')?Number(this.additionalSelected.slice(4)):-1;},
+    cues:cues=>{if(turn!==this.generation||signal.aborted||!this.additionalSelected?.startsWith('hls:'))return;const unique=new Map([...this.hlsCues,...cues].map(c=>[`${c.startTime}:${c.endTime}:${c.text}`,c]));this.hlsCues=[...unique.values()].sort((a,b)=>a.startTime-b.startTime).slice(-20000);this.refreshCaptions();this.syncNativeCaptions();}
+   });if(signal.aborted||turn!==this.generation){detach();return;}this.detachHls=detach;}
    else this.video.src=stream;
    const setStart=()=>{if(signal.aborted||turn!==this.generation)return;this.dimensions();this.clearStartup();__FRAME_DIAGNOSTICS__&&this.log('metadata',{readyState:this.video.readyState});const duration=plan.offset||!Number.isFinite(this.video.duration)?plan.duration:this.video.duration;this.publish({phase:'ready',duration:duration>0?duration:plan.duration});this.video.currentTime=Math.max(0,Math.min(plan.selection.startTicks/10000000,Math.max(0,duration-.1))-plan.offset);this.subtitle(plan);if(!startPaused){this.armStartup();void this.play();}};
    if(this.video.readyState>=1)setStart();else this.video.addEventListener('loadedmetadata',setStart,{once:true,signal});
   }catch(error){if(signal.aborted||turn!==this.generation)return;__FRAME_DIAGNOSTICS__&&this.log('failed',{category:error instanceof PlaybackError?'compatibility':'api',status:typeof (error as {status?:number})?.status==='number'?(error as {status:number}).status:0,mediaCode:this.video.error?.code,readyState:this.video.readyState,networkState:this.video.networkState});if(info?.PlaySessionId)void this.client.stopEncoding(info.PlaySessionId).catch(()=>{});this.detach();this.publish({phase:'failed',error:error instanceof PlaybackError?error.message:'Playback could not start. Check your connection, session, server transcoding permission and browser media support.'});}
  }
  private refreshCaptions(){
-  if(this.suppress||!this.track||!this.state.plan)return;
-  const captions=synchronizedCaptionText(this.track.track,this.video.currentTime,this.state.plan.offset,this.state.subtitleDelay??0);
+  if(this.suppress||!this.state.plan)return;const track=this.captionTrack();
+  const captions=track?synchronizedCaptionText(track,this.video.currentTime,this.additionalSelected?.startsWith('hls:')?0:this.state.plan.offset,this.state.subtitleDelay??0):[];
   if(JSON.stringify(captions)!==JSON.stringify(this.state.captions??[]))this.publish({captions});
  }
  /** Local text timing only: never seeks video, renegotiates or modifies source cues. */
  subtitleDelay(seconds:number){
-  const plan=this.state.plan;if(!plan?.subtitle||this.disposed)return;
+  const plan=this.state.plan;if(!plan||(!plan.subtitle&&!this.customSelected&&!this.additionalSelected)||this.disposed)return;
   const delay=subtitleDelaySeconds(seconds);this.captionDelays.set(`${plan.source.Id}:${plan.subtitleIndex}`,delay);this.publish({subtitleDelay:delay});this.refreshCaptions();this.syncNativeCaptions();
  }
  private clearNativeCaptions(){const track=this.nativeCaptionTrack;if(!track)return;track.mode='disabled';for(const cue of Array.from(track.cues??[]))track.removeCue(cue);}
  private syncNativeCaptions(){
-  this.clearNativeCaptions();if(!this.nativeFullscreen||!this.track||!this.state.plan||typeof this.video.addTextTrack!=='function'||typeof VTTCue==='undefined')return;
-  this.nativeCaptionTrack??=this.video.addTextTrack('subtitles','frame. subtitles',this.track.srclang);
-  for(const cue of nativeCaptionTimeline(Array.from(this.track.track.cues??[]),this.state.plan.offset,this.state.subtitleDelay??0))this.nativeCaptionTrack.addCue(new VTTCue(cue.start,cue.end,cue.text));
-  reconcileCaptionTracks(Array.from(this.video.textTracks),this.track.track,this.nativeCaptionTrack);
+  this.clearNativeCaptions();const track=this.captionTrack();if(!this.nativeFullscreen||!track||!this.state.plan||typeof this.video.addTextTrack!=='function'||typeof VTTCue==='undefined')return;
+  this.nativeCaptionTrack??=this.video.addTextTrack('subtitles','frame. subtitles',this.track?.srclang??'und');
+  for(const cue of nativeCaptionTimeline(Array.from(track.cues??[]),this.additionalSelected?.startsWith('hls:')?0:this.state.plan.offset,this.state.subtitleDelay??0))this.nativeCaptionTrack.addCue(new VTTCue(cue.start,cue.end,cue.text));
+  reconcileCaptionTracks(Array.from(this.video.textTracks),this.track?.track,this.nativeCaptionTrack);
  }
  private subtitle(plan:RuntimePlan){
-  this.clearNativeCaptions();this.track?.remove();this.track=undefined;this.publish({captions:[]});for(const track of Array.from(this.video.textTracks))track.mode='disabled';if(!plan.subtitle||!this.gateway)return;
-  const track=document.createElement('track');track.kind='subtitles';track.label='Selected subtitles';track.srclang=plan.source.MediaStreams.find(t=>t.Index===plan.subtitleIndex)?.Language??'und';track.src=this.gateway.url(plan.subtitle);track.default=true;
+  this.clearNativeCaptions();this.track?.remove();this.track=undefined;this.publish({captions:[],customSubtitleSelected:this.customSelected});for(const track of Array.from(this.video.textTracks))track.mode='disabled';
+  this.detachHls?.selectSubtitle?.(this.additionalSelected?.startsWith('hls:')?Number(this.additionalSelected.slice(4)):-1);
+  if(this.additionalSelected){const selected=this.nativeTracks.get(this.additionalSelected);if(selected)selected.mode='hidden';this.refreshCaptions();this.syncNativeCaptions();return;}
+  const custom=this.customSelected?this.customSubtitle:undefined;if(!custom&&(!plan.subtitle||!this.gateway))return;
+  const track=document.createElement('track');track.kind='subtitles';track.label=custom?.name??'Selected subtitles';track.srclang=custom?.language??plan.source.MediaStreams.find(t=>t.Index===plan.subtitleIndex)?.Language??'und';track.src=custom?.url??this.gateway!.url(plan.subtitle!);track.default=true;
   let overlapLogged=false;const update=()=>{if(this.track!==track)return;const cues=Array.from(track.track.activeCues??[]);if(cues.length>1&&!overlapLogged){overlapLogged=true;__FRAME_DIAGNOSTICS__&&this.log('captions',{activeCues:cues.length,firstCueStart:cues[0].startTime,lastCueStart:cues.at(-1)?.startTime,lastCueEnd:cues.at(-1)?.endTime});}this.refreshCaptions();};
   track.addEventListener('load',()=>{if(this.track!==track)return;track.track.mode='hidden';update();this.syncNativeCaptions();});track.track.addEventListener('cuechange',update);track.addEventListener('error',()=>{if(this.track===track)this.publish({captions:[],notice:'Subtitles could not be loaded. Choose Off or select the track again.'});});this.track=track;this.video.appendChild(track);track.track.mode='hidden';
  }
@@ -164,12 +181,47 @@ export class PlaybackRuntime {
  seek(seconds:number){const position=Math.max(0,Math.min(seconds,this.state.duration));const plan=this.state.plan;if(plan&&(this.stopped.has(plan.sessionId)||plan.mode==='transcode'&&!negotiatedHls(this.itemId,plan.stream))){void this.start({...plan.selection,startTicks:secondsToTicks(position)},this.video.paused);return;}this.video.currentTime=position-(plan?.offset??0);this.publish({phase:'seeking',position});}
  volume(value:number){this.video.volume=Math.max(0,Math.min(1,value));}
  mute(){this.video.muted=!this.video.muted;}
- async change(value:Partial<PlaybackSelection>){const current=this.state.plan?.selection;if(!current)return;await this.start({...current,startTicks:secondsToTicks(this.position()),...value},this.video.paused&&this.state.phase!=='ended');}
+ async change(value:Partial<PlaybackSelection>){
+  const current=this.state.plan?.selection;if(!current)return;
+  if(value.subtitleIndex!==undefined){this.customSelected=false;this.additionalSelected=undefined;this.hlsCues=[];this.detachHls?.selectSubtitle?.(-1);this.publish({customSubtitleSelected:false,additionalSubtitleSelected:undefined,captions:[]});}
+  if(value.sourceId&&value.sourceId!==this.state.plan?.source.Id){this.additionalSelected=undefined;this.hlsCues=[];this.publish({additionalSubtitleSelected:undefined});}
+  const selection={...current,startTicks:secondsToTicks(this.position()),...value};
+  // A version/quality change must not re-enable Jellyfin's default burned track
+  // underneath an independently selected custom or manifest subtitle.
+  if(this.customSelected||this.additionalSelected)selection.subtitleIndex=-1;
+  await this.start(selection,this.video.paused&&this.state.phase!=='ended');
+ }
+ getCustomSubtitle():CustomSubtitle|undefined {const subtitle=this.customSubtitle;return subtitle?{name:subtitle.name,language:subtitle.language,vtt:subtitle.vtt}:undefined;}
+ async loadCustomSubtitle(subtitle:CustomSubtitle){
+  if(this.disposed||!this.state.plan)return;
+  const url=URL.createObjectURL(new Blob([subtitle.vtt],{type:'text/vtt;charset=utf-8'}));
+  this.track?.remove();this.track=undefined;this.clearNativeCaptions();if(this.customSubtitle)URL.revokeObjectURL(this.customSubtitle.url);
+  this.customSubtitle={...subtitle,url};this.publish({customSubtitle:{name:subtitle.name,language:subtitle.language,revision:++this.customRevision}});await this.selectCustomSubtitle();
+ }
+ async selectCustomSubtitle(){
+  const plan=this.state.plan;if(this.disposed||!plan||!this.customSubtitle)return;
+  this.additionalSelected=undefined;this.hlsCues=[];this.detachHls?.selectSubtitle?.(-1);this.publish({additionalSubtitleSelected:undefined});
+  this.customSelected=true;this.publish({customSubtitleSelected:true,subtitleDelay:0,captions:[]});
+  // Remove a server-selected/burned track before drawing a custom overlay.
+  if(plan.subtitleIndex!==-1)await this.start({...plan.selection,subtitleIndex:-1,startTicks:secondsToTicks(this.position())},this.video.paused);
+  else this.subtitle(plan);
+ }
+ removeCustomSubtitle(){
+  if(this.customSelected){this.track?.remove();this.track=undefined;this.clearNativeCaptions();}
+  if(this.customSubtitle)URL.revokeObjectURL(this.customSubtitle.url);
+  const selected=this.customSelected;this.customSubtitle=undefined;this.customSelected=false;this.publish({customSubtitle:undefined,customSubtitleSelected:false,...(selected?{captions:[]}: {})});
+ }
+ async selectAdditionalSubtitle(id:string){
+  const plan=this.state.plan;if(!plan||this.disposed||!this.state.additionalSubtitles?.some(t=>t.id===id))return;
+  this.customSelected=false;this.additionalSelected=id;this.hlsCues=[];this.publish({customSubtitleSelected:false,additionalSubtitleSelected:id,subtitleDelay:0,captions:[]});
+  if(plan.subtitleIndex!==-1)await this.start({...plan.selection,subtitleIndex:-1,startTicks:secondsToTicks(this.position())},this.video.paused);
+  else this.subtitle(plan);
+ }
  private async mediaError(reason?:HlsFailure){if(this.disposed||this.state.phase==='failed'||!this.state.plan||this.stopped.has(this.state.plan.sessionId))return;
   __FRAME_DIAGNOSTICS__&&this.log('media-error',{reason:reason??'unknown',mediaCode:this.video.error?.code,readyState:this.video.readyState,networkState:this.video.networkState});const plan=this.state.plan;if(plan?.mode==='direct'&&(this.state.canHls||this.support.progressiveWebm)&&!this.fallback){this.fallback=true;await this.start({...plan.selection,startTicks:secondsToTicks(this.position()),forceTranscode:true});return;}
   await this.finishPlan();this.suppress=true;this.controller.abort();this.gateway?.close();this.detach();this.publish({phase:'failed',paused:true,error:`${reason?`HLS ${reason} failed.`:'The video could not be decoded or streamed.'} ${reason==='timeout'?'The stream did not become ready within 45 seconds. Check Jellyfin transcode logs and the connection.':'Check server transcoding permissions, the connection and browser codec support.'}`});
  }
  async destroy(unloading=false){
-  if(this.destroyPromise)return this.destroyPromise;__FRAME_DIAGNOSTICS__&&this.log('cleanup');this.generation++;if(this.timer)clearInterval(this.timer);if(this.captionTimer)clearInterval(this.captionTimer);this.removeEvents.splice(0).forEach(remove=>remove());const finish=this.finishPlan(unloading);this.disposed=true;this.controller.abort();this.gateway?.close();this.detach();this.unregister();this.listeners.clear();this.destroyPromise=finish;return finish;
+  if(this.destroyPromise)return this.destroyPromise;__FRAME_DIAGNOSTICS__&&this.log('cleanup');this.generation++;if(this.timer)clearInterval(this.timer);if(this.captionTimer)clearInterval(this.captionTimer);this.removeEvents.splice(0).forEach(remove=>remove());const finish=this.finishPlan(unloading);this.removeCustomSubtitle();this.disposed=true;this.controller.abort();this.gateway?.close();this.detach();this.unregister();this.listeners.clear();this.destroyPromise=finish;return finish;
  }
 }

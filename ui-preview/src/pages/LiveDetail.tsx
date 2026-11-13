@@ -2,7 +2,7 @@ import {TitleTagsEditor, TitleTagLinks} from '../components/TitleTags';
 import {formatMinutes} from '../platform/duration';
 import {WatchlistToggle} from '../components/WatchlistToggle';
 import {IdentifyMedia} from '../components/IdentifyMedia';
-import {ArtworkPicker} from '../components/BannerPicker';
+import {ArtworkPicker,RefreshArtwork} from '../components/BannerPicker';
 import {providerFacts} from '../components/metadataPresentation';
 import {FavoriteToggle} from '../components/FavoriteToggle';
 import {directorCredits} from '../providers/verifiedCredits';
@@ -86,7 +86,7 @@ export function LiveDetail() {
     {info && <Modal title="Manage Title" className="manage-title-modal" onClose={() => setInfo(false)}>
 <p className="manage-title-context">{itemTitle(item)}</p>
 {session?.user.Policy?.IsAdministrator&&['Movie','Series'].includes(item.Type??'')&&<section className="manage-title-section"><h3>Metadata</h3><button className="identify-entry" onClick={()=>{setInfo(false);setIdentifying(true);}}><span><strong>Match &amp; Update Metadata</strong><small>Choose the right movie or series</small></span><ChevronRight size={18}/></button></section>}
-<TitleTagsEditor id={item.Id}/><section className="manage-title-section"><h3>Artwork</h3><ArtworkPicker item={data.data!} kind="banner"/><ArtworkPicker item={data.data!} kind="card"/></section>
+<TitleTagsEditor id={item.Id}/><section className="manage-title-section"><h3>Artwork</h3><RefreshArtwork item={data.data!}/><ArtworkPicker item={data.data!} kind="banner"/><ArtworkPicker item={data.data!} kind="card"/></section>
 <details className="manage-media-details"><summary><span>Media Details</span><small>{coverage.present} fields available</small></summary><div>
 <p className="muted">Metadata supplied by Jellyfin.</p>
 <ul className="metadata-fields">{coverage.fields.filter(f => f.state !== 'not-applicable').map(f => <li key={f.field}>{f.label}: {f.state === 'missing' ? 'not provided' : f.state}</li>)}</ul>

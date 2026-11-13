@@ -1,6 +1,8 @@
 .frame-player{position:fixed;inset:0;z-index:1000;background:#050608;color:#f6f5ef;font-family:var(--font-body,system-ui);font-size:16px;isolation:isolate;outline:none}.frame-player video{width:100%;height:100%;object-fit:contain}.frame-player:fullscreen{width:100vw;height:100vh}.player-chrome{position:absolute;left:0;right:0;z-index:2;transition:opacity .25s ease,visibility .25s ease}.player-top{top:0;display:flex;align-items:center;gap:20px;padding:32px;background:linear-gradient(#000c,transparent)}.player-top h1{font-size:clamp(20px,2vw,30px);margin:4px 0;line-height:1.3}.player-top span,.player-top p{color:#c6c9cf;font-size:14px;margin:0}.player-bottom{bottom:0;padding:50px 32px 24px;background:linear-gradient(transparent,#000e)}.player-controls{display:flex;align-items:center;gap:16px}.player-icon{display:inline-flex;align-items:center;justify-content:center;flex-shrink:0;width:44px;height:44px;border:0;border-radius:50%;background:transparent;color:inherit;cursor:pointer}.player-icon:hover,.player-icon[aria-expanded=true]{background:#ffffff25}.player-icon:disabled{opacity:.35;cursor:default}.frame-player :focus-visible{outline:2px solid var(--accent,#e4a73d);outline-offset:3px}.player-control-spacer{flex:1}.player-timeline{display:block;margin-bottom:14px}.frame-player input[type=range]{accent-color:var(--accent,#e4a73d);cursor:pointer;min-height:24px}.player-timeline input{width:100%}.player-time{font-variant-numeric:tabular-nums;white-space:nowrap}.player-time>span{color:#b5bac3}.player-volume{display:flex;align-items:center;gap:6px}.player-volume input{width:100px}.player-center{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;flex-direction:column;gap:16px;padding:100px 24px;text-align:center;pointer-events:none}.player-center>*{pointer-events:auto}.player-center h2{font-size:28px;margin:0}.player-center p{max-width:600px;line-height:1.7;color:#c8cbd1}.player-spinner{animation:player-spin 1.3s linear infinite}.player-settings{position:absolute;right:32px;bottom:140px;width:min(360px,calc(100vw - 48px));padding:24px;border:1px solid #ffffff24;border-radius:16px;background:#15181df5;box-shadow:0 20px 60px #0008;max-height:60vh;overflow:auto}.player-settings h2{font-size:19px;margin:0 0 20px}.player-settings label{display:grid;gap:8px;margin:16px 0;font-size:15px}.player-settings select{padding:10px 12px;background:#272b32;color:#fafafa;border:1px solid #ffffff25;border-radius:7px;width:100%;font:inherit}.player-settings p,.player-notice{font-size:14px;line-height:1.6;color:#d3d7df}.player-notice{background:#242932e6;border-radius:8px;padding:12px 16px;max-width:800px}.controls-hidden{cursor:none}.controls-hidden .player-chrome{opacity:0;visibility:hidden;pointer-events:none}.player-unavailable{padding:10vh 8vw}.watch-action{display:inline-flex;flex-direction:column;gap:8px}.watch-action>[role=alert]{font-size:14px;max-width:360px;color:var(--text)}.watch-action .button{display:inline-flex;gap:8px;align-items:center}.resume-preview{display:flex;justify-content:center;text-decoration:none}.player-center .button{min-width:180px}@keyframes player-spin{to{transform:rotate(360deg)}}@media(max-width:700px){.player-top{padding:18px;gap:8px}.player-top h1{font-size:20px}.player-bottom{padding:40px 16px 16px}.player-controls{gap:3px}.player-volume input{display:none}.player-time{font-size:13px}.player-settings{right:16px;bottom:128px}.player-top>div{min-width:0}.player-top h1{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.player-icon{width:40px;height:40px}}@media(prefers-reduced-motion:reduce){.player-chrome{transition:none}.player-spinner{animation:none}}
 .frame-player video::cue{color:#fff;background:#000d;font:500 22px system-ui;text-shadow:0 1px 3px #000}.frame-player .player-top{background:linear-gradient(#000d,transparent)}@media(max-width:700px){.frame-player video::cue{font-size:17px}}
 .player-captions{position:absolute;z-index:3;left:10%;right:10%;bottom:140px;display:flex;align-items:center;flex-direction:column;gap:4px;pointer-events:none;text-align:center}.player-captions span{white-space:pre-line;color:#fff;background:#000d;padding:3px 8px;border-radius:3px;font:500 clamp(18px,1.7vw,26px)/1.4 system-ui;text-shadow:0 1px 2px #000}.controls-hidden .player-captions{bottom:7%}@media(max-width:700px){.player-captions{left:5%;right:5%;bottom:125px}.player-captions span{font-size:18px}}
+/* Playback owns the viewport. Do not reserve the library's scrollbar gutter. */
+html:has(.frame-player){scrollbar-gutter:auto;overflow:hidden}
 /* Original cinema player controls: quiet chrome, rounded track panels. */
 .frame-player{font-family:system-ui,-apple-system,'Segoe UI',sans-serif;color:#f7f7f9}
 .frame-player .player-top{padding:28px 36px;gap:14px;background:linear-gradient(#000b,transparent)}
@@ -202,7 +204,17 @@
  .frame-player .player-captions{bottom:105px}
 }
 @media(max-width:700px){.frame-player .player-top{padding-top:max(28px,env(safe-area-inset-top))}.frame-player .player-bottom{padding-bottom:max(16px,env(safe-area-inset-bottom))}}
-.frame-player.pause-screen-visible .player-pause-screen{opacity:1;visibility:visible;transition-delay:0s}
+.frame-player.pause-screen-visible .player-idle-screen{opacity:1;visibility:visible;transition-delay:0s}
+/* Only the idle pause overlay uses the actual frozen video as its backdrop.
+   Resume choices and the completed screen retain their separate canvases. */
+.frame-player .player-idle-screen{
+ background:linear-gradient(90deg,#0003,transparent 75%);
+ backdrop-filter:blur(20px) saturate(.9);
+ -webkit-backdrop-filter:blur(20px) saturate(.9);
+}
+.player-idle-screen .pause-screen-copy{text-shadow:0 2px 16px #0009}
+.player-idle-screen :is(.pause-screen-series,.pause-screen-meta,.pause-screen-description){color:#f0f1f4}
+.pause-screen-visible .player-preview-note{visibility:hidden}
 @media(prefers-reduced-motion:reduce){.frame-player .player-pause-screen{transition:none}}
 
 .player-segment-skip{position:absolute;z-index:5;right:max(24px,env(safe-area-inset-right));bottom:140px;display:flex;align-items:center;gap:18px;padding:12px 20px;border:1px solid #ffffff40;border-radius:999px;color:#fff;background:#15171de6;font:600 15px/1.3 system-ui;cursor:pointer;box-shadow:0 4px 22px #0004;transition:background .18s,transform .18s}.player-segment-skip:hover{background:#30343cef;transform:translateY(-2px)}.player-segment-skip:focus-visible{outline:2px solid var(--accent);outline-offset:4px}@media(max-width:600px){.player-segment-skip{bottom:150px;right:20px;padding:11px 17px;font-size:14px}}@media(prefers-reduced-motion:reduce){.player-segment-skip{transition:none}}
@@ -229,3 +241,36 @@
  background:transparent;border-color:transparent;box-shadow:none;backdrop-filter:none;
  -webkit-backdrop-filter:none;text-shadow:0 1px 4px #000b;
 }
+/* Session subtitle inputs share the existing Cinema track panel. */
+/* Reserve both readouts. Changing digits, remaining-time mode and pausing
+   must not move the neighbouring volume and playback controls. */
+.frame-player .player-time-pill .player-time{
+ display:inline-block;inline-size:19ch;flex:none;text-align:center;
+ font-variant-numeric:tabular-nums;
+}
+.player-time-pill .player-end-time{
+ display:inline-block;inline-size:18ch;flex:none;text-align:left;
+ font-variant-numeric:tabular-nums;
+}
+.custom-subtitle-controls { margin-block: 20px; padding-block: 18px; border-block: 1px solid rgb(255 255 255 / .09); }
+.custom-subtitle-actions { display:flex; flex-wrap:wrap; gap:8px; }
+.custom-subtitle-actions button,.subtitle-url-form button,.remove-custom-subtitle { border:1px solid rgb(255 255 255 / .15); border-radius:999px; background:rgb(255 255 255 / .045); color:inherit; padding:10px 15px; font:inherit; cursor:pointer; }
+.custom-subtitle-controls small { display:block; margin-top:12px; line-height:1.5; color:var(--muted); }
+.subtitle-url-form { display:flex; flex-wrap:wrap; gap:10px; align-items:end; margin-top:16px; }
+.subtitle-url-form label { flex:1 1 220px; min-width:0; }
+.subtitle-url-form input { width:100%; box-sizing:border-box; border-radius:999px; padding:10px 14px; }
+.subtitle-url-form p { flex-basis:100%; margin:0; }
+.player-track-list h3 { margin:20px 10px 8px; font-size:1rem; }
+.remove-custom-subtitle { margin:10px; font-size:.9rem; }
+.save-subtitle-controls{margin:16px 0 22px}
+.save-subtitle-trigger,.save-subtitle-form button{border:1px solid #ffffff26;border-radius:999px;background:#ffffff0b;color:inherit;padding:10px 15px;font:inherit;cursor:pointer}
+.save-subtitle-controls small{display:block;color:#b8bdc7;line-height:1.5;margin-top:8px}
+.save-subtitle-form{margin-top:16px;padding-top:16px;border-top:1px solid #ffffff18}
+.save-subtitle-form h3{font-size:1rem;margin:0 0 10px}.save-subtitle-form .subtitle-save-target{font-size:1rem;color:#f7f7f9;font-weight:600;margin-bottom:3px}
+.save-subtitle-form fieldset{display:grid;gap:14px;border:0;padding:16px 0 0;margin:0;min-width:0}
+.save-subtitle-form label:not(.subtitle-save-toggle){display:grid;justify-items:start;gap:8px;margin:0;font-size:.95rem;font-weight:500}
+.save-subtitle-form label>input:not([type=checkbox]){display:block;width:100%;box-sizing:border-box;margin-top:8px;border-radius:999px;border:1px solid #ffffff24;background:#0003;color:inherit;padding:10px 14px;font:inherit}
+.save-subtitle-form .subtitle-save-toggle{display:flex;align-items:flex-start;gap:10px;margin:0;font-size:.9rem;line-height:1.5}
+.save-subtitle-form input[type=checkbox]{accent-color:var(--accent);flex-shrink:0;margin-top:4px}
+.save-subtitle-form p,.save-subtitle-controls>p{font-size:.9rem;color:#b8bdc7;line-height:1.6;margin:0}
+.save-subtitle-controls button:disabled{opacity:.45;cursor:default}

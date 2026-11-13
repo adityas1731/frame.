@@ -14,7 +14,7 @@ function profileManifest(profile:ReturnType<typeof buildProfile>):Plugin{return{
  this.emitFile({type:'asset',fileName:'build-info.json',source:JSON.stringify({format:'frame-build-v1',version:frame.version,profile:profile.name,diagnostics:profile.diagnostics},null,2)});
 }};}
 export default defineConfig(({mode,command})=>{const profile=buildProfile(mode,command,localDiagnostics);return {
- base:'./',plugins:[react(),frameMediaPlugin(),profileManifest(profile)],
+ base:'./',cacheDir:'.local/vite-cache',plugins:[react(),frameMediaPlugin(),profileManifest(profile)],
  define:{__FRAME_DIAGNOSTICS__:JSON.stringify(profile.diagnostics)},
  publicDir:command==='build'?false:'public',optimizeDeps:{include:['hls.js']},server:{host:'127.0.0.1',port:5173,strictPort:true},
  build:{outDir:profile.outDir,emptyOutDir:true,sourcemap:false,manifest:true},

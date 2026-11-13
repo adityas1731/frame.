@@ -1,5 +1,5 @@
 import {PreviewContext as Context} from './preview-context';
-import {fonts,fontFamily,type FontId} from '../appearance/fonts';
+import {fonts,fontFamily,validFontName,customFontFamily,type FontId} from '../appearance/fonts';
 import { useContext, useEffect, useState, type ReactNode } from 'react';
 
 export const themes = ['graphite', 'midnight', 'forest', 'plum', 'ocean', 'espresso', 'slate', 'obsidian'] as const;
@@ -23,7 +23,7 @@ function readSnapshot(): Snapshot {
     const preferences = { ...defaults, textScale: defaults.textScale };
     const options: Record<string, readonly string[]> = { theme: themes, episodeSize:['small','medium','large'], density: ['comfortable', 'compact'], posterSize: ['small', 'medium', 'large'], font: fonts.map(font=>font.id), navigation: ['expanded', 'compact'], accent: ['amber', 'sage', 'blue', 'rose', 'lavender', 'teal', 'coral', 'silver'] };
     options.textScale = ['90', '100', '110', '125', '140'];
-    if (typeof p.customFont === 'string' && /^[a-zA-Z0-9 -]{1,80}$/.test(p.customFont)) preferences.customFont = p.customFont;
+    if (typeof p.customFont === 'string' && validFontName(p.customFont)) preferences.customFont = p.customFont;
     for (const k of Object.keys(options)) if (options[k].includes(p[k])) Object.assign(preferences, { [k]: p[k] });
     for (const k of ['showTitles', 'showRatings', 'reducedMotion', 'heroAutoAdvance', 'onlineMetadata'] as const) if (typeof p[k] === 'boolean' && (k !== 'heroAutoAdvance' || value.carouselVersion === 1)) preferences[k] = p[k];
     if (Array.isArray(p.homeSections)) preferences.homeSections = [...new Set(p.homeSections.filter((s: unknown): s is Section => typeof s === 'string' && Object.hasOwn(sectionNames, s)))] as Section[];
@@ -46,7 +46,7 @@ export function PreviewProvider({ children }: { children: ReactNode }) {
     const p = snapshot.preferences;
     document.documentElement.style.setProperty('--font-body',fontFamily(p.font));
     document.documentElement.style.fontFamily='var(--font-body)';
-    document.documentElement.style.setProperty('--custom-font', /^[a-zA-Z0-9 -]{1,80}$/.test(p.customFont) ? `"${p.customFont}"` : 'system-ui');
+    document.documentElement.style.setProperty('--custom-font', customFontFamily(p.customFont));
     document.documentElement.style.setProperty('--ui-scale', String(Number(p.textScale) / 100));
     Object.assign(document.documentElement.dataset, { layout: 'cinema', theme: p.theme, density: p.density, poster: p.posterSize, episodeSize:p.episodeSize??'medium', font: p.font, navigation: p.navigation, accent: p.accent, motion: p.reducedMotion ? 'reduced' : 'full' });
     document.querySelector('meta[name="theme-color"]')?.setAttribute('content', '#101111');

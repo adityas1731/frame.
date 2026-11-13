@@ -1,7 +1,7 @@
 {
-  "version": "1.0.4.0",
+  "version": "1.0.5.0",
   "jellyfinAbi": "12.3.0.0",
   "node": "24.18.0",
   "dotnet": "10.0.403",
-  "releaseNotes": "Fix HLS playback failures on long movies when the child playlist exceeds 1 MB. Retain an 8 MiB UTF-8 playlist limit and existing relay authorization and resource restrictions."
+  "releaseNotes": "Fix subtitle track discovery and add custom SRT/VTT loading with explicit Jellyfin saving. Improve artwork selection, banner customization, collection layouts, navigation and connection screens."
 }

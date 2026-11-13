@@ -19,3 +19,12 @@ export function visibleLanguage(track:MediaStream){
  if(/\b(?:German|Spanish|Italian|Portuguese|Dutch|Swedish|Danish|Japanese|Korean|Arabic|Ukrainian)\b/i.test(title))return false;
  return true; // Undeclared tracks remain usable without inventing their language.
 }
+
+/** Track availability must never depend on the audio/UI language shortlist. */
+export function subtitleLabel(track:MediaStream){
+ const label=trackLabel(track);const flags=[];
+ if(track.IsForced&&!/forced/i.test(label))flags.push('Forced');
+ if(track.IsHearingImpaired&&!/\b(SDH|hearing impaired|CC)\b/i.test(label))flags.push('SDH');
+ if(track.IsDefault&&!/default/i.test(label))flags.push('Default');
+ return [label,...flags].join(' · ');
+}

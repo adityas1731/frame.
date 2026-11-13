@@ -9,7 +9,7 @@ export function ProviderSettings(){
     <p>No extra account, payment or API key. frame. uses Jellyfin’s configured artwork providers and free public TV metadata.</p>
     <label className="check-label"><input type="checkbox" checked={preferences.onlineMetadata} onChange={e=>setPreference('onlineMetadata',e.target.checked)}/>Online Artwork & TV Details</label>
     <p>HD backdrops use existing Jellyfin provider IDs. Missing TV descriptions, cast and ratings use verified provider IDs. Missing movie and TV cast portraits can use verified TMDB person IDs from Jellyfin, with no personal API key. Missing episode names can use an identified parent series and consistent aired numbering; ambiguous records stay unchanged.</p>
-    <p>Jellyfin remains authoritative. These are display-only additions: frame. never replaces server metadata or saves provider artwork onto your server.</p>
+    <p>Automatic additions only affect the display. Administrators can save artwork for everyone from Manage Title with Apply for All Users checked.</p>
     <p>When enabled, TV provider IDs go to the public metadata service and public artwork loads from provider CDNs. Jellyfin credentials, server URLs and file paths stay out of those requests.</p>
     {online.simulated&&<p role="status">Synthetic provider responses · original artwork · no network</p>}
     <p>Successfully loaded TV details and episode stills stay cached on this browser for up to 30 days, so temporary provider outages do not remove them.</p>

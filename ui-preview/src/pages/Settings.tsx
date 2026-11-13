@@ -23,7 +23,8 @@ export function Settings(){const {preferences:p}=usePreview();const [activeSecti
     if(!heading)return [];const bounds=section.getBoundingClientRect();return [{id:heading.id,top:bounds.top,bottom:bounds.bottom}];
    });
    const header=document.querySelector('.topbar')?.getBoundingClientRect().bottom??80;
-   const current=visibleSettingsSection(sections,Math.max(0,header),window.innerHeight);
+   const atBottom=window.scrollY>0&&window.scrollY+window.innerHeight>=document.documentElement.scrollHeight-2;
+   const current=atBottom?sections.at(-1)?.id:visibleSettingsSection(sections,Math.max(0,header),window.innerHeight);
    if(current)setActiveSection(current);
   };
   const schedule=()=>{if(!frame)frame=requestAnimationFrame(measure);};

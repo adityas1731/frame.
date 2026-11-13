@@ -6,6 +6,11 @@ import {hosting} from '../build/hosting.ts';
 // Bundle the engine with Frame. A failed/stale lazy chunk must never masquerade as missing MSE support.
 export type HlsFailure = 'playlist' | 'segment' | 'decoding' | 'network' | 'stream' | 'timeout';
 export type HlsDiagnostic = (event:{reason:HlsFailure;fatal:boolean;status?:number})=>void;
+export interface HlsCaptions {
+ tracks:(tracks:{id:string;label:string;language?:string;forced?:boolean;source:'hls'}[])=>number;
+ cues:(cues:VTTCue[])=>void;
+}
+export type HlsAttachment=(()=>void)&{selectSubtitle?:(index:number)=>void};
 export async function probeHls(){
  const mediaSourceAvailable=typeof globalThis.MediaSource!=='undefined';
  try{return{supported:Hls.isSupported(),engineLoaded:true,mediaSourceAvailable,engineLoadFailed:false};}
@@ -46,7 +51,7 @@ export function hlsConfig(stream: string, start: number, origin: string,scope='/
 
 /** Exported lifecycle boundary also accepts a test engine without networking or decoders. */
 export function attachEngine(Engine: typeof Hls, config: Partial<HlsConfig>, video: HTMLVideoElement,
-    stream: string, onError: (reason?: HlsFailure) => void, signal?: AbortSignal, diagnostic?:HlsDiagnostic): () => void {
+    stream: string, onError: (reason?: HlsFailure) => void, signal?: AbortSignal, diagnostic?:HlsDiagnostic,captions?:HlsCaptions): HlsAttachment {
   if (signal?.aborted) throw new PlaybackError('Player connection closed.');
   const hls = new Engine(config);
   let closed = false;
@@ -80,15 +85,31 @@ export function attachEngine(Engine: typeof Hls, config: Partial<HlsConfig>, vid
       : /frag|key/i.test(data.details ?? '') ? 'segment'
       : data.type === Engine.ErrorTypes.NETWORK_ERROR ? 'network' : 'stream');
   });
+  if(captions){
+   hls.subtitleDisplay=false;
+   hls.on(Engine.Events.SUBTITLE_TRACKS_UPDATED,(_event,data)=>{
+    const index=captions.tracks(data.subtitleTracks.map((track,index)=>({id:`hls:${index}`,label:track.name||track.lang||`Subtitle ${index+1}`,language:track.lang,forced:track.forced,source:'hls'})));
+    hls.subtitleTrack=index;
+   });
+   hls.on(Engine.Events.CUES_PARSED,(_event,data)=>{
+    // A previous track's fragment can finish parsing after a language switch.
+    // Never mix its dialogue into the currently selected track.
+    if(closed||data.type!=='subtitles'||hls.subtitleTrack<0)return;
+    if(data.subtitleTrack&&data.subtitleTrack!==hls.subtitleTracks[hls.subtitleTrack])return;
+    const index=/^subtitles(\d+)$/.exec(data.track??'');
+    if(index&&Number(index[1])!==hls.subtitleTrack)return;
+    captions.cues(data.cues as VTTCue[]);
+   });
+  }
   signal?.addEventListener('abort', close, { once: true });
   try { hls.attachMedia(video); hls.loadSource(stream); }
   catch { close(); throw new PlaybackError('The HLS media engine could not start.'); }
-  return close;
+  return Object.assign(close,{selectSubtitle:(index:number)=>{hls.subtitleDisplay=false;hls.subtitleTrack=index;}});
 }
 
 export async function attachHls(video: HTMLVideoElement, url: string, start: number,
-    onError: (reason?: HlsFailure) => void, signal?: AbortSignal, diagnostic?:HlsDiagnostic,authorizeRelay?:(raw:string)=>string): Promise<() => void> {
+    onError: (reason?: HlsFailure) => void, signal?: AbortSignal, diagnostic?:HlsDiagnostic,authorizeRelay?:(raw:string)=>string,captions?:HlsCaptions): Promise<HlsAttachment> {
   if (!Hls.isSupported()) throw new PlaybackError('HLS streaming is unsupported in this browser.');
   return attachEngine(Hls, { ...hlsConfig(url, start, location.origin,hosting(document.baseURI).scope,authorizeRelay), loader: FetchLoader },
-    video, url, onError, signal, diagnostic);
+    video, url, onError, signal, diagnostic,captions);
 }

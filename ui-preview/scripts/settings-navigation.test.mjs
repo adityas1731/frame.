@@ -9,10 +9,17 @@ test('Playback is active when its panel dominates, even before its heading reach
   {id:'devices-heading',top:829,bottom:1200},
  ],70,997),'playback-heading');
 });
-test('navigation follows visible space in both scroll directions and excludes hidden header space',()=>{
- assert.equal(visibleSettingsSection([{id:'layout',top:-500,bottom:460},{id:'playback',top:490,bottom:1300}],80,900),'playback');
+test('navigation follows the reading line in both scroll directions and excludes hidden header space',()=>{
+ assert.equal(visibleSettingsSection([{id:'layout',top:-500,bottom:460},{id:'playback',top:490,bottom:1300}],80,900),'layout');
  assert.equal(visibleSettingsSection([{id:'layout',top:-100,bottom:700},{id:'playback',top:730,bottom:1500}],80,900),'layout');
  assert.equal(visibleSettingsSection([{id:'previous',top:-300,bottom:70},{id:'current',top:100,bottom:700}],80,900),'current');
+});
+test('short Connection remains active on entry and after clicking it despite the taller Appearance panel',()=>{
+ assert.equal(visibleSettingsSection([{id:'connection',top:220,bottom:440},{id:'appearance',top:472,bottom:2700}],80,1080),'connection');
+ assert.equal(visibleSettingsSection([{id:'connection',top:80,bottom:300},{id:'appearance',top:332,bottom:2500}],80,1080),'connection');
+});
+test('Appearance becomes active when it reaches the reading line',()=>{
+ assert.equal(visibleSettingsSection([{id:'connection',top:-220,bottom:0},{id:'appearance',top:32,bottom:2200}],80,1080),'appearance');
 });
 test('large expanded editors, small screens and gaps retain a valid active section',()=>{
  assert.equal(visibleSettingsSection([{id:'home',top:-2000,bottom:2000},{id:'online',top:2032,bottom:2600}],80,844),'home');

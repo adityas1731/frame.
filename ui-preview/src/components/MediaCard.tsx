@@ -9,7 +9,7 @@ import { usePreview } from '../state/PreviewContext';
 import { Artwork } from './Artwork';
 import { IconButton } from './Primitives';
 
-export function MediaCard({ item, landscape = false, rank, continueWatching = false }: { item: MediaItem; landscape?: boolean; rank?: number; continueWatching?: boolean }) {
+export function MediaCard({ item, landscape = false, rank, continueWatching = false, showTitles, showRatings }: { showTitles?:boolean;showRatings?:boolean;item: MediaItem; landscape?: boolean; rank?: number; continueWatching?: boolean }) {
   const { favorites, watchlist, toggleFavorite, toggleWatchlist, preferences, notify } = usePreview();
   const saved = watchlist.includes(item.id);
   return <article className={`media-card ${landscape ? 'landscape-card' : ''} ${rank ? 'ranked-card' : ''}`}>
@@ -33,10 +33,10 @@ export function MediaCard({ item, landscape = false, rank, continueWatching = fa
 <span style={{ width: `${item.progress}%` }}/>
 </div>}
     </div>
-    {(preferences.showTitles || landscape) && <div className="card-info">
+    {((showTitles??preferences.showTitles) || landscape) && <div className="card-info">
 <Link to={`/item/${item.id}`} className="card-title">{item.title}</Link>
 <div className="card-meta">
-<span>{item.kind === 'show' ? `${item.seasons} seasons` : item.year}{continueWatching ? ` · ${formatPlaybackProgress(item.runtime*60*(item.progress??0)/100,item.runtime*60)}` : landscape ? ` · ${item.kind === 'show' ? 'Episode 3' : `${duration(Math.round(item.runtime * (1 - (item.progress ?? 0) / 100)))} left`}` : ` · ${item.genres[0]}`}</span>{preferences.showRatings && !landscape && <span className="card-score">
+<span>{item.kind === 'show' ? `${item.seasons} seasons` : item.year}{continueWatching ? <> · <span className="continue-progress">{formatPlaybackProgress(item.runtime*60*(item.progress??0)/100,item.runtime*60)}</span></> : landscape ? ` · ${item.kind === 'show' ? 'Episode 3' : `${duration(Math.round(item.runtime * (1 - (item.progress ?? 0) / 100)))} left`}` : ` · ${item.genres[0]}`}</span>{(showRatings??preferences.showRatings) && !landscape && <span className="card-score">
 <Star size={10} fill="currentColor"/>{item.score.toFixed(1)}</span>}</div>
 </div>}
   </article>;

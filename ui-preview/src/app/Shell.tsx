@@ -1,7 +1,7 @@
 import {AccessPanel} from '../access/AccessPanel';
 import {MetadataCredit} from '../components/MetadataCredit';
-import { useEffect, useRef, useState, type FormEvent } from 'react';
-import { Link, NavLink, Outlet, useLocation, useNavigate } from 'react-router';
+import { useEffect, useLayoutEffect, useRef, useState, type FormEvent } from 'react';
+import { Link, NavLink, Navigate, Outlet, useLocation, useNavigate } from 'react-router';
 import { CircleAlert, RefreshCw, QrCode, ArrowLeft, ArrowUpRight, Bookmark, Check, Clapperboard, Film, Heart, House, Library, Menu, Search, Settings2, Tv, X, type LucideIcon } from 'lucide-react';
 import { media } from '../data/media';
 import { usePreview } from '../state/PreviewContext';
@@ -26,11 +26,15 @@ export function Shell() {
   const immersiveHeader=['/','/movies','/shows'].includes(location.pathname)||location.pathname.startsWith('/item/');
   useEffect(() => { if (mobileOpen) document.getElementById('close-drawer')?.focus(); }, [mobileOpen]);
   const [search, setSearch] = useState('');
-  useEffect(() => { setMobileOpen(false); window.scrollTo({ top: 0 }); }, [location.pathname]);
+  // Reset before paint so the new page never flashes at the previous scroll offset.
+  useLayoutEffect(() => { setMobileOpen(false); window.scrollTo({ top: 0, behavior: 'instant' }); setScrolled(false); }, [location.pathname]);
   useEffect(() => { const handler = (event: KeyboardEvent) => { if ((event.ctrlKey || event.metaKey) && event.key === 'k') { event.preventDefault(); searchRef.current?.focus(); } if (event.key === 'Escape') setMobileOpen(false); }; window.addEventListener('keydown', handler); return () => window.removeEventListener('keydown', handler); }, []);
   const submitSearch = (event: FormEvent) => { event.preventDefault(); navigate(`/search?q=${encodeURIComponent(search.trim())}`); searchRef.current?.blur(); };
   const section = location.pathname.startsWith('/item/') ? 'Details' : location.pathname === '/' ? 'Discover' : location.pathname === '/shows' ? 'TV Shows' : location.pathname.split('/')[1].replace(/^./, c => c.toUpperCase());
-  return <div className={`app-shell ${mobileOpen ? 'nav-open' : ''}`}>
+  // No connection must never silently turn the user's library into demo content.
+  if(!session&&location.pathname!=='/connect'&&!location.pathname.startsWith('/settings'))return <Navigate to="/connect" replace/>;
+  const connectionPage=location.pathname==='/connect';
+  return <div className={`app-shell ${connectionPage?'connection-shell':''} ${mobileOpen ? 'nav-open' : ''}`}>
     <a className="skip-link" href="#main-content" onClick={event => { event.preventDefault(); document.getElementById('main-content')?.focus(); }}>Skip to content</a>
     {mobileOpen && <button className="nav-scrim" aria-label="Close navigation" onClick={() => setMobileOpen(false)}/>}
     <aside className="sidebar" aria-label="Main navigation" inert={!mobileOpen}>
@@ -81,8 +85,8 @@ export function Shell() {
     </aside>
     <div className="workspace" inert={mobileOpen}>
 <header className={`topbar ${immersiveHeader?'topbar-immersive':''} ${scrolled?'topbar-scrolled':''}`}>
-<Link className="masthead-brand" to="/" aria-label="frame. home">frame<span>.</span></Link>
-<div className="topbar-location">
+<NavLink className="masthead-brand" to="/" end aria-label="frame. home">frame<span>.</span></NavLink>
+{!connectionPage&&<><div className="topbar-location">
 <IconButton className="mobile-menu" label={mobileOpen ? 'Close navigation' : 'Open navigation'} onClick={() => setMobileOpen(o => !o)}>{mobileOpen ? <X size={20}/> : <Menu size={20}/>}</IconButton>
 <IconButton label="Go back" onClick={() => location.key === 'default' ? navigate('/') : navigate(-1)}>
 <ArrowLeft size={18}/>
@@ -90,7 +94,7 @@ export function Shell() {
 <span className="breadcrumb">Your library <span>/</span> <strong>{section}</strong>
 </span>
 </div>
-<nav className="cinema-top-links" aria-label="Cinema navigation"><NavLink to="/" end>Discover</NavLink><NavLink to="/movies">Movies</NavLink><NavLink to="/shows">TV shows</NavLink><NavLink to="/library">Your Library</NavLink></nav>
+<nav className="cinema-top-links" aria-label="Cinema navigation"><NavLink to="/movies">Movies</NavLink><NavLink to="/shows">TV shows</NavLink><NavLink to="/library">Your Library</NavLink></nav>
 <div id="appearance-actions-slot"/>
 <form className="global-search" onSubmit={submitSearch} role="search">
 <Search size={16}/>
@@ -100,8 +104,9 @@ export function Shell() {
 <span className="local-status">
 <i/> {session ? (session.server.Id === 'frame-fixture' ? 'SIMULATED JELLYFIN' : 'JELLYFIN') : 'MOCK PREVIEW'}</span>
 <div className="masthead-actions"><Link className="icon-button" to="/watchlist" aria-label="Watchlist" title="Watchlist"><Bookmark size={20}/></Link><Link className="icon-button" to="/settings" aria-label="Settings" title="Settings"><Settings2 size={20}/></Link><button className="icon-button qr-access-trigger" aria-label="Open frame. on another device" title="QR access" onClick={()=>setAccessOpen(true)}><QrCode size={21}/></button><NavLink className="icon-button favorites-access-trigger" to="/favorites" aria-label="Favorites" title="Favorites"><Heart size={20}/></NavLink></div>
+</>}
 </header>
-      {message && <section className="connection-notice" role="status" aria-label="Server connection update">
+      {message && location.pathname!=='/connect' && <section className="connection-notice" role="status" aria-label="Server connection update">
 <CircleAlert size={20} aria-hidden="true"/>
 <div className="connection-notice-copy"><strong>Server Connection</strong><p>{message}</p></div>
 <Link className="connection-notice-action" to="/connect">Reconnect<ArrowUpRight size={16} aria-hidden="true"/></Link>

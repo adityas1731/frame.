@@ -1,3 +1,6 @@
+import {useCollectionLayout} from '../state/collectionLayout';
+import {CollectionLayoutButton,collectionGridClass} from '../components/CollectionLayout';
+import {Pagination} from './LiveShared';
 import {GenreMenu} from '../components/TitleTags';
 import {headingCase} from '../components/headingCase';
 import {WatchedToggle} from '../components/WatchedToggle';
@@ -17,6 +20,7 @@ const labels: Record<CollectionMode, string> = { movies: 'MOVIES', shows: 'TV SH
 export function LibraryPage({ mode }: { mode: CollectionMode }) {
   const { favorites, watchlist, preferences } = usePreview();
   const [params, setParams] = useSearchParams();
+  const layout=useCollectionLayout(mode);const customLayout=true;
   const q = params.get('q') ?? '';
   const genre = params.get('genre') ?? 'All genres';
   const sort = params.get('sort') ?? 'featured';
@@ -25,13 +29,16 @@ export function LibraryPage({ mode }: { mode: CollectionMode }) {
   const base = media.filter(item => (mode !== 'movies' || item.kind === 'movie') && (mode !== 'shows' || item.kind === 'show') && (mode !== 'favorites' || favorites.includes(item.id)) && (mode !== 'watchlist' || watchlist.includes(item.id)));
   const items = base.filter(item => (genre === 'All genres' || item.genres.includes(genre)) && `${item.title} ${item.overview} ${item.genres.join(' ')} ${item.cast.join(' ')} ${item.director}`.toLowerCase().includes(q.toLowerCase().trim())).sort((a, b) => sort === 'title' ? a.title.localeCompare(b.title) : sort === 'rating' ? b.score - a.score : sort === 'newest' ? b.year - a.year || Number(Boolean(b.new)) - Number(Boolean(a.new)) : 0);
   const isSearch = mode === 'search';
+  const requestedStart=Number(params.get('start')??0);const start=Number.isSafeInteger(requestedStart)&&requestedStart>0?Math.min(requestedStart,Math.max(0,Math.ceil(items.length/layout.value.pageSize)-1)*layout.value.pageSize):0;
+  const visibleItems=customLayout?items.slice(start,start+layout.value.pageSize):items;
   const pageDescription = mode === 'movies' ? 'From quiet discoveries to extraordinary adventures.' : mode === 'shows' ? 'A new world is only an episode away.' : mode === 'watchlist' ? 'Save a little inspiration for another evening.' : mode === 'favorites' ? 'Some stories stay with you. Keep them close.' : isSearch ? 'Search by title, genre, director, or cast.' : `${media.filter(m => m.kind === 'movie').length} films. ${media.filter(m => m.kind === 'show').length} series. Endless possibilities.`;
   const hasSpotlight=['movies','shows'].includes(mode)&&!q&&genre==='All genres'&&items.length>0;
   return <div className={`content-page collection-page ${hasSpotlight?'collection-page-hero':''}`}>
-{!hasSpotlight&&<header className="page-heading">
+{!hasSpotlight&&<header className={`page-heading ${customLayout?'collection-page-heading':''}`}>
 <span className="eyebrow">{labels[mode]}</span>
 <h1>{headingCase(titles[mode])}</h1>
-<p>{pageDescription}</p>
+{!customLayout&&<p>{pageDescription}</p>}
+{customLayout&&<CollectionLayoutButton layout={layout} onPageSizeChange={()=>update('start','')}/>}
 </header>}
     {hasSpotlight&&<CollectionSpotlight page={mode==='movies'?'movies':'shows'} pageTitle={titles[mode]} stories={items.map(item=>({id:item.id,title:item.title,description:item.overview,meta:[item.year,...item.genres].join(' · '),to:`/item/${item.id}`,artwork:<Artwork item={item}/>}))}/>}
     {isSearch && <div className="search-stage">
@@ -40,6 +47,7 @@ export function LibraryPage({ mode }: { mode: CollectionMode }) {
 <X size={20}/>
 </IconButton>}</div>}
     <div className="collection-toolbar">
+{hasSpotlight&&<CollectionLayoutButton layout={layout} onPageSizeChange={()=>update('start','')}/>}
 {mode==='library'?<GenreMenu/>:<div className="filter-select">
 <SlidersHorizontal size={15}/>
 <Select aria-label="Filter by genre" value={genre} onValueChange={value=> update('genre', value)}>{['All genres', ...genres].map(g => <option key={g}>{g}</option>)}</Select>
@@ -54,14 +62,14 @@ export function LibraryPage({ mode }: { mode: CollectionMode }) {
 <option value="title">Title A–Z</option>
 <option value="rating">Highest rated</option>
 </Select>
-<div className="view-switch">
+{!customLayout&&<div className="view-switch">
 <IconButton label="Grid view" pressed={view === 'grid'} onClick={() => update('view', 'grid')}>
 <Grid2X2 size={16}/>
 </IconButton>
 <IconButton label="List view" pressed={view === 'list'} onClick={() => update('view', 'list')}>
 <List size={17}/>
 </IconButton>
-</div>
+</div>}
 </div>
 </div>
     {!isSearch && !['favorites', 'watchlist'].includes(mode) && <div className="genre-chips">{['All genres', 'Adventure', 'Drama', 'Science Fiction', 'Thriller', 'Nature'].map(g => <button key={g} className={genre === g ? 'active' : ''} onClick={() => update('genre', g)}>{g === 'All genres' ? 'All stories' : g}</button>)}</div>}
@@ -69,7 +77,7 @@ export function LibraryPage({ mode }: { mode: CollectionMode }) {
 <button onClick={() => update('q', 'Nature')}>a quieter world</button>
 <button onClick={() => update('q', 'Drama')}>a human story</button>
 </p>}
-    {items.length ? view === 'grid' ? <div className="media-grid">{items.map(item => <MediaCard key={item.id} item={item}/>)}</div> : <div className="media-list">{items.map(item => <article key={item.id} className="media-list-entry"><WatchedToggle demoId={item.id} title={item.title}/><Link to={`/item/${item.id}`} className="media-list-item">
+    {items.length ? customLayout||view === 'grid' ? <div className={customLayout?collectionGridClass(layout.value):"media-grid"} style={customLayout?layout.style:undefined}>{visibleItems.map(item => <MediaCard key={item.id} item={item} showTitles={customLayout?layout.value.titles:undefined} showRatings={customLayout?layout.value.ratings:undefined}/>)}</div> : <div className="media-list">{items.map(item => <article key={item.id} className="media-list-entry"><WatchedToggle demoId={item.id} title={item.title}/><Link to={`/item/${item.id}`} className="media-list-item">
 <div className="list-art">
 <Artwork item={item}/>
 </div>
@@ -81,6 +89,7 @@ export function LibraryPage({ mode }: { mode: CollectionMode }) {
 <span>{item.year}</span>
 <span className="list-duration">{item.kind === 'show' ? `${item.seasons} seasons` : duration(item.runtime)}</span>{preferences.showRatings && <span className="score">
 <Star size={13}/>{item.score}</span>}</Link></article>)}</div> : <EmptyState title={q || genre !== 'All genres' ? 'No stories found just yet.' : mode === 'favorites' ? 'Room for your favorites.' : 'Your next chapter starts here.'} description={q || genre !== 'All genres' ? 'Try a different title, person, or genre.' : 'Explore the library and save something that catches your eye.'}>{q || genre !== 'All genres' ? <button className="button secondary" onClick={() => setParams({})}>Clear filters</button> : <Link className="button primary" to="/library">{mode === 'favorites' ? <Heart size={16}/> : <Bookmark size={16}/>} Explore the library</Link>}</EmptyState>}
+    {customLayout&&items.length>layout.value.pageSize&&<Pagination start={start} total={items.length} count={visibleItems.length} pageSize={layout.value.pageSize} loading={false} change={next=>{update('start',String(next));window.scrollTo({top:0,behavior:'instant'});}}/>}
   </div>;
 }
 export function KindCollection({ kind }: { kind: MediaKind }) { return <LibraryPage mode={kind === 'movie' ? 'movies' : 'shows'}/>; }

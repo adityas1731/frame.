@@ -1,6 +1,6 @@
 import {resolutionCap} from './resolution.ts';
 import {clampTicks,type MediaStream as BaseStream,type MediaSource as BaseSource,type PlaybackInfo as BaseInfo} from './foundation.ts';
-export interface MediaStream extends BaseStream {DisplayTitle?:string;Title?:string;Profile?:string;Level?:number;BitDepth?:number;Width?:number;Height?:number;BitRate?:number;RealFrameRate?:number;Channels?:number;SampleRate?:number;IsDefault?:boolean;IsForced?:boolean;SupportsExternalStream?:boolean;DeliveryUrl?:string;IsTextSubtitleStream?:boolean;VideoRangeType?:string}
+export interface MediaStream extends BaseStream {DisplayTitle?:string;Title?:string;Profile?:string;Level?:number;BitDepth?:number;Width?:number;Height?:number;BitRate?:number;RealFrameRate?:number;Channels?:number;SampleRate?:number;IsDefault?:boolean;IsForced?:boolean;IsHearingImpaired?:boolean;SupportsExternalStream?:boolean;DeliveryUrl?:string;IsTextSubtitleStream?:boolean;VideoRangeType?:string}
 export interface MediaSource extends Omit<BaseSource,'MediaStreams'> {MediaStreams:MediaStream[];Name?:string;Bitrate?:number;DefaultAudioStreamIndex?:number;DefaultSubtitleStreamIndex?:number;TranscodingUrl?:string;TranscodingOffsetTicks?:number;DirectStreamUrl?:string;RequiredHttpHeaders?:Record<string,string>;RequiresOpening?:boolean;SupportsProbing?:boolean}
 export interface PlaybackInfo extends Omit<BaseInfo,'MediaSources'> {MediaSources:MediaSource[]}
 export interface PlaybackSelection {sourceId?:string;audioIndex?:number;subtitleIndex?:number;startTicks:number;maxBitrate:number;forceTranscode?:boolean;maxHeight?:number}
@@ -16,7 +16,7 @@ export function parsePlaybackInfo(raw:unknown):PlaybackInfo {
    const track:MediaStream={Index:v.Index as number,Type:v.Type as MediaStream['Type']};
    for(const key of ['Codec','Language','DisplayTitle','Title','Profile','DeliveryMethod','DeliveryUrl','VideoRangeType'] as const)if(str(v[key])!==undefined)track[key]=str(v[key]);
    for(const key of ['Level','BitDepth','Width','Height','BitRate','RealFrameRate','Channels','SampleRate'] as const)if(number(v[key])!==undefined)track[key]=number(v[key]);
-   for(const key of ['IsExternal','IsDefault','IsForced','SupportsExternalStream','IsTextSubtitleStream'] as const)if(typeof v[key]==='boolean')track[key]=v[key] as boolean;
+   for(const key of ['IsExternal','IsDefault','IsForced','IsHearingImpaired','SupportsExternalStream','IsTextSubtitleStream'] as const)if(typeof v[key]==='boolean')track[key]=v[key] as boolean;
    return track;
   });
   return {Id:s.Id as string,Container:str(s.Container)?.toLowerCase(),Name:str(s.Name),RunTimeTicks:number(s.RunTimeTicks),Bitrate:number(s.Bitrate),SupportsDirectPlay:s.SupportsDirectPlay===true,SupportsDirectStream:s.SupportsDirectStream===true,SupportsTranscoding:s.SupportsTranscoding===true,TranscodingSubProtocol:str(s.TranscodingSubProtocol),TranscodingContainer:str(s.TranscodingContainer),TranscodingUrl:str(s.TranscodingUrl),TranscodingOffsetTicks:number(s.TranscodingOffsetTicks),DirectStreamUrl:str(s.DirectStreamUrl),DefaultAudioStreamIndex:number(s.DefaultAudioStreamIndex),DefaultSubtitleStreamIndex:number(s.DefaultSubtitleStreamIndex),RequiresOpening:s.RequiresOpening===true,MediaStreams:streams};

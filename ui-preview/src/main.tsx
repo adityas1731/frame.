@@ -24,3 +24,7 @@ import './styles/controls.css';
 import './styles/watchlist.css';
 import './styles/artwork-interactions.css';
 import './styles/title-tags.css';
+
+import './styles/navigation-motion.css';
+
+import './styles/collection-layout.css';

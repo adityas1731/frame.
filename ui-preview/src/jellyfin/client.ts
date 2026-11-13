@@ -4,6 +4,8 @@ import {FRAME_VERSION} from '../version.ts';
 import {requestSignal} from '../platform/browser.ts';
 import type { BrowseQuery, Fetcher, ItemDto, Page, ServerInfo, Session, User } from './types.ts';
 import {parsePlaybackInfo,type PlayingReport} from '../playback/protocol.ts';
+import {subtitleUploadBody,type SubtitleSaveOptions} from './subtitleUpload.ts';
+import type {CustomSubtitle} from '../playback/customSubtitles.ts';
 
 export class JellyfinError extends Error {
   readonly status: number;
@@ -25,7 +27,7 @@ export function parseServer(value: unknown): ServerInfo {
 }
 export function parseUser(value: unknown): User {
   if (!record(value) || typeof value.Id !== 'string' || !value.Id) throw new JellyfinError(0, 'The server returned an invalid account.');
-  return { Id: value.Id, Name: typeof value.Name === 'string' ? value.Name : 'Jellyfin user', Policy: record(value.Policy) ? { IsAdministrator: value.Policy.IsAdministrator === true, IsDisabled: value.Policy.IsDisabled === true } : undefined };
+  return { Id: value.Id, Name: typeof value.Name === 'string' ? value.Name : 'Jellyfin user', Policy: record(value.Policy) ? { IsAdministrator: value.Policy.IsAdministrator === true, IsDisabled: value.Policy.IsDisabled === true, EnableSubtitleManagement: value.Policy.EnableSubtitleManagement === true } : undefined };
 }
 export function parseItem(value: unknown): ItemDto {
   if (!record(value) || typeof value.Id !== 'string' || !value.Id) throw new JellyfinError(0, 'The server returned an invalid media item.');
@@ -55,6 +57,30 @@ function parsePage(value: unknown): Page<ItemDto> {
   return { Items: value.Items.map(parseItem), TotalRecordCount: value.TotalRecordCount };
 }
 export class JellyfinClient {
+  private subtitleUploads=new Set<string>();
+  async saveSubtitle(itemId:string,sourceId:string,subtitle:CustomSubtitle,options:SubtitleSaveOptions){
+    if(!/^[a-f0-9]{32}$/i.test(itemId.replaceAll('-',''))||!sourceId)throw new JellyfinError(0,'Select a movie or episode before saving subtitles.');
+    const body=subtitleUploadBody(subtitle,options);
+    if(this.subtitleUploads.has(itemId))throw new JellyfinError(409,'A subtitle upload for this title is already in progress.');
+    this.subtitleUploads.add(itemId);
+    try{
+      const user=parseUser(await this.request('Users/Me'));
+      if(user.Policy?.IsDisabled||!(user.Policy?.IsAdministrator||user.Policy?.EnableSubtitleManagement))throw new JellyfinError(403,'Your Jellyfin account needs permission to manage subtitles. You can still use this file temporarily.');
+      // Fresh metadata is intentional. The upload endpoint targets an item, not a
+      // media-source ID, and cannot safely address an alternate cut/version.
+      const raw=await this.request(`Items/${encodeURIComponent(itemId)}?fields=MediaSources,MediaStreams`);
+      if(!record(raw)||raw.Id!==itemId||!['Movie','Episode','Video'].includes(String(raw.Type)))throw new JellyfinError(409,'This item cannot receive subtitles. Open its movie or episode instead.');
+      if(!Array.isArray(raw.MediaSources)||raw.MediaSources.some(s=>!record(s)||!Array.isArray(s.MediaStreams)))throw new JellyfinError(409,'Jellyfin did not return complete media-version details. Reopen the title before saving.');
+      const sources=parsePlaybackInfo({PlaySessionId:'metadata-inspection',MediaSources:raw.MediaSources}).MediaSources;
+      if(sources.length!==1||sources[0].Id!==sourceId)throw new JellyfinError(409,'This title has multiple or changed media versions. Manage its subtitles in Jellyfin to choose the correct file.');
+      const aliases:Record<string,string>={en:'eng',fr:'fra',fre:'fra',pl:'pol',da:'dan',fi:'fin',no:'nor',sv:'swe'};
+      const language=(value:string)=>aliases[value.toLowerCase()]??value.toLowerCase();
+      if(sources[0].MediaStreams.some(t=>t.Type==='Subtitle'&&t.IsExternal&&language(t.Language??'und')===language(body.Language)&&!!t.IsForced===body.IsForced&&!!t.IsHearingImpaired===body.IsHearingImpaired&&['vtt','webvtt'].includes(t.Codec?.toLowerCase()??'')))throw new JellyfinError(409,'An external subtitle with this language and type already exists. Review it in Jellyfin before adding another.');
+      try{await this.request(`Videos/${encodeURIComponent(itemId)}/Subtitles`,'POST',body);}
+      catch(error){if(error instanceof JellyfinError&&(error.status===0||error.status>=500))throw new JellyfinError(409,'Jellyfin did not confirm the upload. It may have saved the file. Check the title in Jellyfin before uploading again.');throw error;}
+      this.invalidate();
+    }finally{this.subtitleUploads.delete(itemId);}
+  }
   private identificationChoices = new Map<string, Set<import('./identification.ts').IdentificationResult>>();
   async searchIdentification(itemId:string,kind:'Movie'|'Series',query:import('./identification.ts').IdentificationQuery){
     const user=parseUser(await this.request('Users/Me'));
@@ -101,15 +127,15 @@ export class JellyfinClient {
     try { if (this.controller.signal.aborted) throw new JellyfinError(0, 'Connection closed.'); return await task(); }
     finally { this.active--; this.queue.shift()?.(); }
   }
-  private async request(path: string, method = 'GET', body?: unknown, image = false, anonymous = false, signal?:AbortSignal, keepalive=false, optional=false): Promise<unknown> {
+  private async request(path: string, method = 'GET', body?: unknown, image = false, anonymous = false, signal?:AbortSignal, keepalive=false, optional=false, rawImage?:string): Promise<unknown> {
     const execute = async () => {
       if (this.controller.signal.aborted) throw new JellyfinError(0, 'Connection closed.');
       for (let attempt = 0; attempt < 2; attempt++) {
         const cancellation=requestSignal([this.controller.signal,...(signal?[signal]:[])],12000);
         try {
           const response = await this.transport(`${this.baseUrl}/${path}`, {
-            method, headers: { Authorization: this.header(anonymous), Accept: image ? 'image/*' : 'application/json; profile=PascalCase', ...(body !== undefined ? { 'Content-Type': 'application/json' } : {}) },
-            ...(body !== undefined ? { body: JSON.stringify(body) } : {}), credentials: 'omit', redirect: 'error', referrerPolicy: 'no-referrer',
+            method, headers: { Authorization: this.header(anonymous), Accept: image ? 'image/*' : 'application/json; profile=PascalCase', ...(rawImage!==undefined?{'Content-Type':'image/jpeg'}:body !== undefined ? { 'Content-Type': 'application/json' } : {}) },
+            ...(rawImage!==undefined?{body:rawImage}:body !== undefined ? { body: JSON.stringify(body) } : {}), credentials: 'omit', redirect: 'error', referrerPolicy: 'no-referrer',
             signal: cancellation.signal, cache: image ? 'default' : 'no-store', keepalive,
           });
           if (!response.ok) {
@@ -159,7 +185,42 @@ export class JellyfinClient {
     this.pending.set(key, promise); return promise;
   }
   invalidate() { this.cache.clear(); this.images.clear(); }
-  invalidateRemoteImages() { for (const key of this.cache.keys()) if (key.includes('/RemoteImages?')) this.cache.delete(key); }
+  private artworkWrites=new Set<string>();
+  /** Explicit administrator-only image update. Never changes identification or text metadata. */
+  async saveSharedArtwork(item:ItemDto,kind:'banner'|'card',source:Blob|string){
+    if(!['Movie','Series'].includes(item.Type??''))throw new JellyfinError(400,'Open a movie or series to change its artwork.');
+    const writeKey=`${item.Id}:${kind}`;
+    if(this.artworkWrites.has(writeKey))throw new JellyfinError(409,'Artwork is already being saved.');
+    this.artworkWrites.add(writeKey);
+    try{
+      const user=parseUser(await this.request('Users/Me'));
+      if(!user.Policy?.IsAdministrator)throw new JellyfinError(403,'Only a Jellyfin administrator can change artwork for all users.');
+      const type=kind==='banner'?'Backdrop':'Primary',path=`Items/${encodeURIComponent(item.Id)}`;
+      const readImages=async()=>{const value=await this.request(`${path}/Images`);if(!Array.isArray(value))throw new JellyfinError(0,'Jellyfin returned an unreadable image list.');return value.filter(record).filter(row=>row.ImageType===type);};
+      const before=kind==='banner'?await readImages():[];
+      if(typeof source==='string'){
+        const images=await (kind==='banner'?this.remoteBackdrops(item):this.remotePosters(item));
+        if(!images.some(image=>image.url===source))throw new JellyfinError(400,'Choose an image from this title’s provider artwork.');
+        await this.request(`${path}/RemoteImages/Download?${new URLSearchParams({type,imageUrl:source})}`,'POST');
+      }else{
+        if(source.type!=='image/jpeg'||!source.size||source.size>10*1024*1024)throw new JellyfinError(400,'Choose a processed JPEG image under 10 MB.');
+        const bytes=new Uint8Array(await source.arrayBuffer());
+        if(bytes[0]!==255||bytes[1]!==216||bytes[2]!==255)throw new JellyfinError(400,'This image is not a valid JPEG.');
+        let binary='';for(let i=0;i<bytes.length;i+=8192)binary+=String.fromCharCode(...bytes.subarray(i,i+8192));
+        await this.request(`${path}/Images/${type}`,'POST',undefined,false,false,undefined,false,false,btoa(binary));
+      }
+      this.invalidate();
+      if(kind==='banner'){
+        const after=await readImages();const added=after.filter(row=>!before.some(old=>old.ImageTag===row.ImageTag));
+        if(added.length===1&&Number.isInteger(added[0].ImageIndex)&&Number(added[0].ImageIndex)>0)
+          await this.request(`${path}/Images/Backdrop/${added[0].ImageIndex}/Index?newIndex=0`,'POST');
+        else if(after.length>1&&added.length!==1)throw new JellyfinError(409,'Artwork was saved, but the banner order could not be confirmed. Review it in Jellyfin before retrying.');
+      }
+      // The promoted backdrop is authoritative only after the reorder completes.
+      this.invalidate();
+    }finally{this.artworkWrites.delete(writeKey);}
+  }
+  invalidateRemoteImages(itemId?:string) { for (const key of this.cache.keys()) if (key.includes(itemId?`Items/${encodeURIComponent(itemId)}/RemoteImages?`:'/RemoteImages?')) this.cache.delete(key); }
   /** Exact person identity only; never search names or save images onto Jellyfin. */
   remotePortrait(person: ItemDto) {
     const tmdb=Object.entries(person.ProviderIds??{}).find(([key])=>key.toLowerCase()==='tmdb')?.[1];

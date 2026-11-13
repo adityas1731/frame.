@@ -1,3 +1,4 @@
+import {useArtworkRevision} from './artworkRefresh';
 import {useConnection} from '../jellyfin/useConnection';
 import {useRemote} from '../jellyfin/hooks';
 import { useEffect, useRef, useState } from 'react';
@@ -8,12 +9,12 @@ import { mergeMetadata, ProviderError, type OnlineMetadata } from './metadata';
 export function useRichItem(item?:ItemDto, parent?:ItemDto, enabled=true) {
   const {client}=useOnline();const key=JSON.stringify([item?.Id,item?.Name,item?.Type,item?.ProviderIds,item?.ParentIndexNumber,item?.IndexNumber,item?.IndexNumberEnd,parent?.ProviderIds,parent?.DisplayOrder,item?.PremiereDate]);
   const [state,setState]=useState<{client:typeof client;key:string;online?:OnlineMetadata|null;error?:string}>({client:null,key:''});
-  const [recovery,setRecovery]=useState(0);
+  const [recovery,setRecovery]=useState(0);const artworkRevision=useArtworkRevision(item?.Id);
   const attempts=useRef(0);
   useEffect(()=>{attempts.current=0;},[client,key]);
   useEffect(()=>{let ignore=false;if(!client||!item||!enabled)return;
     client.enrich(item,parent).then(online=>{if(!ignore)setState({client,key,online});},error=>{if(!ignore)setState({client,key,error:error instanceof ProviderError?error.message:'Online metadata unavailable.'});});return()=>{ignore=true;};
-  },[client,key,enabled,recovery]);
+  },[client,key,enabled,recovery,artworkRevision]);
   const visible=state.client===client&&state.key===key?state:undefined;
   const online=client?visible?.online:undefined;
   // Bounded automatic recovery for unavailable episode images, never a library refresh.

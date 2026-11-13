@@ -1,5 +1,9 @@
 /* New connection and server-data states use the established Frame palette and spacing. */
-.connection-layout { display: grid; grid-template-columns: minmax(0, 600px) minmax(240px, 350px); gap: 40px; }
+.connection-layout { display: grid; grid-template-columns: minmax(0, 600px) minmax(0, 600px); gap: clamp(28px,5vw,90px); max-width:1320px; }
+.connection-privacy p{max-width:65ch;text-wrap:pretty}
+.connection-shell .sidebar,.connection-shell .nav-scrim{display:none!important}
+body .connection-shell .workspace{margin-left:0;width:100%}
+:root[data-layout='cinema'] body .connection-shell .topbar{min-height:76px;height:76px;flex-wrap:nowrap}
 .connection-card { padding: 28px; min-width: 0; overflow-wrap: anywhere; }
 .connection-card > svg { color: var(--accent); margin-bottom: 16px; }
 .connection-card h2 { font-size: 1.5rem; margin-bottom: 16px; }

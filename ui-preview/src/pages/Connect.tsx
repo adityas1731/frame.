@@ -30,21 +30,11 @@ export function Connect() {
     catch (e) { setError(errorMessage(e)); } finally { setPassword(''); setBusy(false); }
   }
   async function resume() { await connection.resumeSaved(); }
-  async function simulate() {
-    setBusy(true); setError('');
-    try {
-      const { createFixtureFetch } = await import('../jellyfin/fixtures');
-      const client = connection.createClient('https://frame-fixture.invalid', createFixtureFetch('10.11.9'));
-      const server = await client.probe();
-      const session = await client.authenticate(server, 'fictional', '');
-      connection.activate(client, session, false); navigate('/');
-    } catch (e) { setError(errorMessage(e)); } finally { setBusy(false); }
-  }
   return <div className="content-page connection-page">
 <header className="page-heading">
 <span className="eyebrow">frame.</span>
-<h1>A Place For Your Stories.</h1>
-<p>Connect to Jellyfin, or keep exploring the fictional frame. library.</p>
+<h1>Connect To Jellyfin</h1>
+<p>Sign in to open your library.</p>
 </header>
     {hostedServer && <p className="connection-note">Server address detected from this Jellyfin-hosted frame. page, including its Base URL. You can change it below.</p>}
     {playbackRequirement && <p className="connection-note" role="status">{hostedServer?'Playback stays in frame. using this server’s item-scoped media relay. No extra sign-in or certificate is needed.':playbackRequirement}</p>}
@@ -58,7 +48,7 @@ export function Connect() {
 <p className="muted">Keeps the session token locally and reconnects automatically. Your password is never saved. Sign out removes the remembered sign-in.</p>
 <div className="modal-actions">
 <Link className="button primary" to="/library">Browse libraries</Link>
-<button className="button secondary" onClick={() => { void connection.disconnect(); }}>Sign out & return to mock mode</button>
+<button className="button secondary" onClick={() => { void connection.disconnect(); }}>Sign Out</button>
 </div>
 </section>
     : <div className="connection-layout">
@@ -91,19 +81,14 @@ export function Connect() {
 <button className="button secondary" disabled={busy} onClick={() => void resume()}>Retry saved connection</button>
 <button className="text-link" onClick={connection.forget}>Forget saved session</button>
 </div>}
-      {import.meta.env.DEV && <div className="connection-note">
-<p>Developer sandbox: synthetic API responses, fictional media and original test artwork. No network connection.</p>
-<button className="button secondary" disabled={busy} onClick={() => void simulate()}>Try simulated Jellyfin</button>
-</div>}
       {error && <p className="connection-error" role="alert">{error}</p>}
     </section>
-<aside className="connection-card">
+<aside className="connection-card connection-privacy">
 <ShieldCheck size={25}/>
-<h2>Private By Design.</h2>
-<p>Remember me saves your Jellyfin session token on this device and reconnects automatically after reloads or browser restarts. Browser scripts and extensions can read this storage; it is not an encrypted secret vault. Turn it off on shared devices.</p>
-<p>Passwords are never stored. HTTPS protects data in transit. Cross-origin servers must permit frame. through CORS; frame. does not bypass browser protections.</p>
-<p>Opening frame. automatically contacts a previously remembered server to validate its session. Without a saved sign-in, no server connection starts automatically.</p>
-<Link className="button secondary" to="/">Continue with mock data</Link>
+<h2>Your Sign-In Stays With You</h2>
+<p>frame. connects directly to your Jellyfin server. Your password is used to sign in and is never saved. With Remember Me on, this browser keeps a session token so you can return without signing in again. Leave it off on a shared device. Signing out removes the saved token.</p>
+<p>The token is stored in this browser, where scripts running on this site and browser extensions may be able to read it. Use HTTPS to protect traffic between your device and server. If they use different addresses, Jellyfin must allow the connection through CORS.</p>
+<p>If you have a saved sign-in, frame. checks it with your server when you open the app. Otherwise, it waits until you test a connection.</p>
 </aside>
 </div>}
   </div>;

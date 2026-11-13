@@ -54,7 +54,7 @@ export function ConnectionProvider({children}:{children:ReactNode}) {
   }finally{if(turn===generation.current){pending.current=null;setRestoring(false);}}
  }
  async function resumeSaved(){if(saved)await restore(saved,saved.baseUrl.startsWith('http:'));}
- function useMock(){generation.current++;pending.current?.dispose();pending.current=null;setRestoring(false);setMessage('Automatic connection paused for this visit. Your remembered sign-in is still available in Server connection.');}
+ function useMock(){generation.current++;pending.current?.dispose();pending.current=null;setRestoring(false);setMessage('Automatic connection paused for this visit. You can retry your saved connection or sign in below.');}
  useEffect(()=>{
   if(initial)void restore(initial.session,initial.allowHttp);
   return()=>{generation.current++;pending.current?.dispose();pending.current=null;};
@@ -64,5 +64,5 @@ export function ConnectionProvider({children}:{children:ReactNode}) {
   const old=activeRef.current;activeRef.current=null;setActive(null);forget();setMessage('');
   if(old)try{await old.client.logout();}catch{setMessage('Signed out locally. Server logout could not be confirmed; revoke the session in Jellyfin if necessary.');}
  }
- return <Context value={{client:active?.client??null,session:active?.session??null,saved,message,restoring,remembered,rememberCurrent,resumeSaved,createClient,activate,disconnect,forget}}>{restoring?<main className="session-restoring" aria-busy="true"><h1>Welcome Back.</h1><p role="status">Restoring your Jellyfin connection…</p><button className="button secondary" onClick={useMock}>Use mock mode for now</button></main>:children}</Context>;
+ return <Context value={{client:active?.client??null,session:active?.session??null,saved,message,restoring,remembered,rememberCurrent,resumeSaved,createClient,activate,disconnect,forget}}>{restoring?<main className="session-restoring" aria-busy="true"><h1>Welcome Back.</h1><p role="status">Restoring your Jellyfin connection…</p><button className="button secondary" onClick={useMock}>Go To Sign In</button></main>:children}</Context>;
 }

@@ -1,5 +1,14 @@
 # Changelog
 
+## 1.0.5.0
+
+- List all available subtitle tracks, including languages outside the audio shortlist.
+- Load local SRT/VTT files or direct HTTPS subtitle links. Save validated subtitles to Jellyfin with explicit confirmation and server permission checks.
+- Keep saved banner artwork ahead of automatic provider fallbacks. Add shared artwork saving and a banner-selection grid.
+- Unify collection layout controls and refine navigation, pause screens, custom fonts and card hover states.
+- Remove the automatic demo library and simplify the connection page.
+- Fix the player viewport gap and empty Watchlist loading state.
+
 ## 1.0.4.0
 
 - Fix relay HTTP 502 failures for valid HLS playlists larger than 1 MB.

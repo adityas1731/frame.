@@ -36,6 +36,13 @@ export class FreeMetadataClient {
     this.server=server;this.fetcher=fetcher;this.imageUrl=imageUrl;this.now=now;this.store=store;
   }
   async clearCache(){this.generation++;this.cache.clear();this.server.invalidateRemoteImages();await this.store.clear().catch(()=>{});}
+  async refreshArtwork(item:ItemDto){
+    const prefix=`item:[${JSON.stringify(item.Id)},`;
+    for(const key of this.cache.keys())if(key.startsWith(prefix))this.cache.delete(key);
+    this.server.invalidateRemoteImages(item.Id);
+    const [backdrops,posters]=await Promise.all([this.server.remoteBackdrops(item),this.server.remotePosters(item)]);
+    return {backdrops,posters};
+  }
   dispose(){this.controller.abort();this.cache.clear();this.queue.splice(0).forEach(resolve=>resolve());this.portraitQueue.splice(0).forEach(resolve=>resolve());}
   /** Movie cast uses verified person IDs, never actor-name guesses. */
   portrait(userId:string,personId:string):Promise<string|null>{

@@ -92,10 +92,19 @@
 }
 
 /* Accent appears with deliberate pointer or keyboard interaction. */
-:root[data-layout='cinema'] body .widget-continue .media-card:focus-within :is(.card-title,.continue-rating){color:var(--accent)}
+:root[data-layout='cinema'] body .media-card:focus-within :is(.card-title,.card-score,.continue-rating,.continue-episode-title,.widget-episode strong,.continue-progress){color:var(--accent)}
 @media(hover:hover){
- :root[data-layout='cinema'] body .widget-continue .media-card:hover :is(.card-title,.continue-rating){color:var(--accent)}
+ :root[data-layout='cinema'] body .media-card:hover :is(.card-title,.card-score,.continue-rating,.continue-episode-title,.widget-episode strong,.continue-progress){color:var(--accent)}
 }
 @media(prefers-reduced-motion:reduce){.continue-info>.card-title,.continue-rating{transition:none}}
 
 .continue-info>.continue-detail:focus-visible{text-decoration:underline;text-underline-offset:4px}
+
+/* Playback times inherit neutral metadata color until the card is active. */
+:root[data-layout='cinema'] body .widget-continue .continue-progress{transition:color 220ms ease}
+:root[data-layout='cinema'] body .media-card :is(.card-title,.card-score){transition:color 220ms ease}
+@media(prefers-reduced-motion:reduce){:root[data-layout='cinema'] body .media-card :is(.card-title,.card-score,.continue-progress){transition:none}}
+
+:root[data-layout='cinema'] body .media-card .card-score svg{color:inherit}
+:root[data-layout='cinema'] body .category-tile:focus-visible .category-title{color:var(--accent)}
+@media(hover:hover){:root[data-layout='cinema'] body .category-tile:hover .category-title{color:var(--accent)}}
