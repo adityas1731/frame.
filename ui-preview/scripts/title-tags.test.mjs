@@ -2,13 +2,19 @@ import {test,after} from 'node:test';
 import assert from 'node:assert/strict';
 import {fileURLToPath} from 'node:url';
 import {createServer} from 'vite';
+import {createElement as h} from 'react';
+import {renderToStaticMarkup} from 'react-dom/server';
 const server=await createServer({root:fileURLToPath(new URL('../',import.meta.url)),configFile:false,server:{middlewareMode:true,hmr:false},appType:'custom',optimizeDeps:{noDiscovery:true,include:[]},esbuild:{jsx:'automatic'}});
 after(()=>server.close());
-const {normalizeTags}=await server.ssrLoadModule('/src/state/TitleTags.tsx');
+const {normalizeTags,normalizeTagNames,renameTitleTag,removeTitleTag}=await server.ssrLoadModule('/src/state/TitleTags.tsx');
 
 const {JellyfinClient}=await server.ssrLoadModule('/src/jellyfin/client.ts');
 const {taggedIds,tagSelection,selectedTag,loadTaggedItems}=await server.ssrLoadModule('/src/state/tagSelection.ts');
 const {widget,widgetQuery,normalizeStudio,defaultStudio}=await server.ssrLoadModule('/src/studio/model.ts');
+const {TitleTagsProvider}=await server.ssrLoadModule('/src/state/TitleTags.tsx');
+const {StudioContext}=await server.ssrLoadModule('/src/studio/context.ts');
+const {TitleTagsEditor}=await server.ssrLoadModule('/src/components/TitleTags.tsx');
+const {TagsSettings}=await server.ssrLoadModule('/src/components/TagsSettings.tsx');
 
 
 test('custom tags normalize names and duplicates without changing the supplied record',()=>{
@@ -67,4 +73,45 @@ test('tag sections fetch every ID batch then apply one global order and display 
  assert.deepEqual(calls.map(batch=>batch.length),[40,40,5]);
  assert.deepEqual(result.map(item=>item.Id),['item-84','item-83','item-82','item-81','item-80']);
  assert.deepEqual(await loadTaggedItems([],{limit:12},()=>assert.fail('empty tag must not fetch the library')),[]);
+});
+
+
+test('renaming a tag updates every assigned title, preserving unrelated tags and input',()=>{
+ const input={movie:['Weekend','Drama'],show:['weekend'],other:['Other']};const before=structuredClone(input);
+ assert.deepEqual(renameTitleTag(input,'WEEKEND','Watch Together'),{movie:['Watch Together','Drama'],show:['Watch Together'],other:['Other']});assert.deepEqual(input,before);
+});
+test('deleting a tag removes all case variants and empty assignments without touching other labels',()=>{
+ const input={movie:['Weekend','Drama'],show:['weekend'],other:['Other']};
+ assert.deepEqual(removeTitleTag(input,' weekend '),{movie:['Drama'],other:['Other']});assert.equal(input.show[0],'weekend');
+});
+test('tag rename deduplicates collisions within a title and respects normalization',()=>{
+ assert.deepEqual(renameTitleTag({movie:['Weekend','Together']},'Weekend','Together'),{movie:['Together']});
+});
+
+test('reusable tag names survive empty title assignments and storage round trips',()=>{
+ const assignments=normalizeTags({movie:['Weekend'],show:['Drama']});
+ const names=normalizeTagNames(Object.values(assignments).flat());
+ const withoutMovie=normalizeTags({...assignments,movie:[]});
+ assert.deepEqual(withoutMovie,{show:['Drama']});
+ assert.deepEqual(normalizeTagNames(JSON.parse(JSON.stringify(names))),['Drama','Weekend']);
+ assert.deepEqual(normalizeTagNames([' Weekend  Watch ','weekend watch',null,'', 'x'.repeat(41)]),['weekend watch']);
+ assert.deepEqual(normalizeTagNames({movie:['Weekend']}),[]);
+});
+
+test('fresh provider restores an unassigned tag in Settings and offers it for reassignment',()=>{
+ const descriptor=Object.getOwnPropertyDescriptor(globalThis,'localStorage');
+ const saved=new Map([
+  ['refresh-test:title-tags.v1','{}'],
+  ['refresh-test:tag-names.v1',JSON.stringify(['Weekend'])],
+ ]);
+ Object.defineProperty(globalThis,'localStorage',{configurable:true,value:{getItem:key=>saved.get(key)??null}});
+ try{
+  const render=()=>renderToStaticMarkup(h(StudioContext.Provider,{value:{scope:'refresh-test',config:defaultStudio()}},h(TitleTagsProvider,null,h(TagsSettings),h(TitleTagsEditor,{id:'movie'}))));
+  for(let refresh=0;refresh<2;refresh++){
+   const html=render();
+   assert.match(html,/Weekend<\/span><small>0<\/small>/);
+   assert.match(html,/aria-label="Saved Tags"[^]*?\+<\/span>Weekend<\/button>/);
+   assert.doesNotMatch(html,/aria-label="Tags On This Title"/);
+  }
+ }finally{if(descriptor)Object.defineProperty(globalThis,'localStorage',descriptor);else delete globalThis.localStorage;}
 });

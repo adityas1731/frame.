@@ -10,7 +10,7 @@ Tested with Jellyfin Server 12.3. Supports movies and series, browser playback, 
 
 Install **Frame** from its Jellyfin plugin catalog, or extract the Release ZIP into the server's plugin directory. Back up first and restart Jellyfin after installation. Open `/Frame/Web/` and sign in with your Jellyfin account. Installed plugins do not need `npm run dev`.
 
-[Installation, updates and rollback](docs/INSTALLATION.md). The repository and draft release are currently private. The catalog is not available yet.
+[Installation, updates and rollback](docs/INSTALLATION.md).
 
 ## Limits
 
@@ -18,6 +18,6 @@ Playback depends on browser codecs, server transcoding and account permissions. 
 
 ## Source
 
-[Build instructions](docs/BUILDING.md) | [Release/source mapping](docs/RELEASE-SOURCE.md) | [Licensing](docs/LICENSING.md)
+[Edit, preview and release](docs/WORKFLOW.md) | [Build instructions](docs/BUILDING.md) | [Release/source mapping](docs/RELEASE-SOURCE.md) | [Licensing](docs/LICENSING.md)
 
 Original code is GPL-3.0-only. Matching source and dependency-source archives accompany the release binary. Third-party notices remain applicable.

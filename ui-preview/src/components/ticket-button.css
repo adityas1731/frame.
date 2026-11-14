@@ -1,0 +1,35 @@
+/* Each half exposes the backdrop through its corner notches. */
+body .ticket-button.button,
+:root[data-layout='cinema'] body .detail-play-stack>.watch-action>.ticket-button.button{
+  display:inline-flex;align-items:stretch;gap:0;padding:0;min-height:48px;min-width:156px;
+  background:transparent;color:#15171b;border:0;border-radius:12px;box-shadow:none;overflow:visible;
+  font:inherit;font-weight:650;white-space:nowrap;isolation:isolate;
+}
+.ticket-button-main,.ticket-button-stub{
+  display:flex;align-items:center;justify-content:center;background:#f4f4f5;min-height:48px;
+  transition:transform .26s cubic-bezier(.2,.75,.25,1),background .2s;
+
+}
+:root[data-layout='cinema'] body .detail-actions .ticket-button.button>span{display:flex;align-items:center;justify-content:center}
+.ticket-button-main{flex:1;padding:12px 22px;position:relative;transform-origin:right bottom;border-radius:12px 0 0 12px;
+  -webkit-mask:radial-gradient(circle at right top,transparent 5px,#000 5.5px) top/100% 51% no-repeat,radial-gradient(circle at right bottom,transparent 5px,#000 5.5px) bottom/100% 51% no-repeat;
+  mask:radial-gradient(circle at right top,transparent 5px,#000 5.5px) top/100% 51% no-repeat,radial-gradient(circle at right bottom,transparent 5px,#000 5.5px) bottom/100% 51% no-repeat}
+.ticket-button-main::after{content:'';position:absolute;right:0;top:9px;bottom:9px;border-right:1px dashed #15171b35}
+.ticket-button-stub{width:46px;flex-shrink:0;flex-direction:column;gap:4px;background:#f4f4f5;transform-origin:left bottom;font-family:ui-monospace,monospace;border-radius:0 12px 12px 0;
+  -webkit-mask:radial-gradient(circle at left top,transparent 5px,#000 5.5px) top/100% 51% no-repeat,radial-gradient(circle at left bottom,transparent 5px,#000 5.5px) bottom/100% 51% no-repeat;
+  mask:radial-gradient(circle at left top,transparent 5px,#000 5.5px) top/100% 51% no-repeat,radial-gradient(circle at left bottom,transparent 5px,#000 5.5px) bottom/100% 51% no-repeat}
+.ticket-button[data-episode] .ticket-button-main{padding-inline:26px}
+.ticket-button[data-episode] .ticket-button-stub{width:94px;padding-inline:10px;font:inherit}
+.ticket-episode-label{font:inherit;line-height:1.2;letter-spacing:0;white-space:normal;text-align:center;max-width:100%}
+.ticket-button-stub small{font-size:7px;line-height:1;letter-spacing:.14em;color:#54565c}
+.ticket-button:hover:not(:disabled) .ticket-button-main{background:#fff}
+.ticket-button:hover:not(:disabled) .ticket-button-stub{background:#fff}
+.ticket-button[data-torn] .ticket-button-main{transform:translateX(-2px) rotate(-6deg)}
+.ticket-button[data-torn] .ticket-button-stub{transform:translate(5px,1px) rotate(8deg)}
+body .ticket-button[data-torn]:disabled{opacity:1}
+body .ticket-button:focus:not(:focus-visible){outline:none}
+body .ticket-button:focus-visible{outline:2px solid var(--accent);outline-offset:6px}
+@media(prefers-reduced-motion:reduce){.ticket-button-main,.ticket-button-stub{transition:none!important;transform:none!important}}
+:root[data-effects='off'] .ticket-button :is(.ticket-button-main,.ticket-button-stub),
+:root[data-motion='reduced'] .ticket-button :is(.ticket-button-main,.ticket-button-stub){transition:none;transform:none}
+

@@ -49,11 +49,11 @@ export function Shell() {
 </span>
 </Link>
       <div className="sidebar-body">
-<span className="nav-label">YOUR LIBRARY</span>
+<span className="nav-label">Your Library</span>
 <nav>{mainNavigation.map(({ to, title, icon: Icon, count }) => <NavLink key={to} to={to} end={to === '/'} className={({ isActive }) => `nav-item ${isActive ? 'active' : ''}`} aria-label={title} title={title}>
 <Icon size={19}/>
 <span className="nav-text">{title}</span>{count !== undefined && <span className="nav-count">{session ? (to === '/movies' ? counts.data?.movies : counts.data?.series) ?? '—' : count}</span>}</NavLink>)}</nav>
-        <span className="nav-label personal-label">JUST FOR YOU</span>
+        <span className="nav-label personal-label">Saved</span>
 <nav>
 <NavLink to="/watchlist" className="nav-item" title="Watchlist" aria-label="Watchlist">
 <Bookmark size={19}/>

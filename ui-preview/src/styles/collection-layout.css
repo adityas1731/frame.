@@ -34,3 +34,12 @@ body .collection-hide-ratings .card-score{display:none}
  body dialog.collection-layout-drawer{inset:auto 0 0;margin:0;width:100%;height:48dvh;max-height:48dvh;padding:24px 20px;border-radius:20px 20px 0 0}
 }
 @media(prefers-reduced-motion:reduce){body dialog.collection-layout-drawer{animation:none}}
+
+/* Keep collection pagination and credits at the foot of the viewport without
+   fixing either over the cards. Long collections continue in normal flow. */
+:root[data-layout='cinema'] body .workspace:has(.collection-page){min-height:100svh}
+:root[data-layout='cinema'] body .workspace:has(.collection-page) #main-content{flex:1 0 auto;display:flex;flex-direction:column}
+:root[data-layout='cinema'] body .workspace:has(.collection-page) .page-transition{display:flex;flex-direction:column;flex:1;min-height:0}
+:root[data-layout='cinema'] body .collection-page{display:flex;flex-direction:column;flex:1;padding-bottom:12px}
+:root[data-layout='cinema'] body .collection-page>.pagination{margin:auto 0 0;padding:32px 0 8px;flex-shrink:0}
+:root[data-layout='cinema'] body .workspace:has(.collection-page)>.metadata-credit{flex-shrink:0;margin-top:0;padding-block:16px}

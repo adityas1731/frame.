@@ -1,5 +1,15 @@
 # Changelog
 
+## 1.0.6.0
+
+- Refine playback settings, subtitle controls, quality labels and control spacing.
+- Add tag management in Settings. Keep unassigned tags available after refresh; removing a title's tag does not delete the tag.
+- Highlight assigned tags and make existing tags reusable from Manage Title.
+- Add ticket-style Watch and Resume buttons with episode labels and a half-second pause after the tear animation.
+- Replace disconnected demo pages with a connection screen and preserve saved sign-in details.
+- Adjust title actions, sidebar spacing, collection footers and interface wording.
+- Add a practical local development and release guide.
+
 ## 1.0.5.0
 
 - List all available subtitle tracks, including languages outside the audio shortlist.

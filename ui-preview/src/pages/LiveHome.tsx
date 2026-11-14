@@ -23,5 +23,5 @@ export function LiveHome() {
     {item && <FeaturedHero story={{ id: item.Id, title: itemTitle(item), description: item.Overview ?? '', metadata: [item.ProductionYear ? String(item.ProductionYear) : '', item.OfficialRating ?? '', item.Type==='Series'?'':runtime(item) ?? ''], genres: item.Genres }} artwork={<FeaturedServerArtwork item={item}/>} titles={featured.map(itemTitle)} {...carousel} actions={<>
       <Link className="button hero-primary" to={`/item/${encodeURIComponent(item.Id)}`}>Explore</Link>
     </>}/>}
-    {items.length ? <HomeWidgets/> : !data.loading && !data.error && <EmptyState title="Your Next Chapter Starts Here." description="No movies or series are visible to this account."/>}  </div>;
+    {items.length ? <HomeWidgets/> : !data.loading && !data.error && <EmptyState title="No Titles Available" description="No movies or series are visible to this account."/>}  </div>;
 }

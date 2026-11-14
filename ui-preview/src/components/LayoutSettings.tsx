@@ -40,7 +40,7 @@ export function LayoutSettings() {
         {([
           {key: 'showTitles', label: 'Show title labels'},
           {key: 'showRatings', label: 'Show ratings'},
-          {key: 'heroAutoAdvance', label: 'Rotate featured stories every six seconds'},
+          {key: 'heroAutoAdvance', label: 'Rotate Banners Every Six Seconds'},
           {key: 'reducedMotion', label: 'Gentler motion'},
         ] as const).map(({key, label}) => (
           <div className="studio-toggle-row" key={key}>

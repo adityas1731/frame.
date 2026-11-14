@@ -2,7 +2,7 @@ import { useEffect, useRef, useState } from 'react';
 import { useConnection, errorMessage } from './useConnection';
 import { JellyfinError } from './client';
 export function useRemote<T>(key: string, load: () => Promise<T>, playbackUpdates=true) {
-  const { client } = useConnection();
+  const { client,reportUnavailable } = useConnection();
   const loader = useRef(load); loader.current = load;
   const [revision, setRevision] = useState(0);
   useEffect(()=>{const reload=()=>setRevision(v=>v+1);window.addEventListener('frame:server-reload',reload);return()=>window.removeEventListener('frame:server-reload',reload);},[]);
@@ -12,6 +12,7 @@ export function useRemote<T>(key: string, load: () => Promise<T>, playbackUpdate
     let ignore = false;
     setState(old => ({ key, data: old.key === key ? old.data : undefined, loading: old.key !== key || old.data === undefined }));
     loader.current().then(data => { if (!ignore) setState({ key, data, loading: false }); }, error => {
+      if(!ignore&&client&&error instanceof JellyfinError&&error.status===0&&error.message.startsWith('Could not reach Jellyfin.'))reportUnavailable?.(client);
       const unavailable = error instanceof JellyfinError && [401, 403, 404].includes(error.status);
       if (!ignore) setState(old => ({ key, data: !unavailable && old.key === key ? old.data : undefined, error: errorMessage(error), loading: false }));
     });

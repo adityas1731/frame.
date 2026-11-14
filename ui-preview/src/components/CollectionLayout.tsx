@@ -7,7 +7,7 @@ type Layout=ReturnType<typeof useCollectionLayout>;
 export function CollectionLayoutButton({layout,onPageSizeChange}:{layout:Layout;onPageSizeChange:()=>void}) {
  const [open,setOpen]=useState(false);const {value,change}=layout;
  return <><button className="button secondary collection-layout-trigger" onClick={()=>setOpen(true)} aria-haspopup="dialog" aria-expanded={open}><SlidersHorizontal size={17}/>Layout</button>{open&&<Modal className="collection-layout-drawer" title="Layout" onClose={()=>setOpen(false)}>
- <p className="collection-layout-note">Just for this section. Changes save as you go.</p>
+ <p className="collection-layout-note">Changes apply to this page and save automatically.</p>
  <section><h3>Cards</h3>
  <label>Card Size <output>{value.width}px</output><input aria-label="Card size" type="range" min={120} max={320} step={4} value={value.width} onChange={e=>change({width:Number(e.target.value)})}/></label>
  <label>Spacing <output>{value.gap}px</output><input aria-label="Card spacing" type="range" min={8} max={40} step={2} value={value.gap} onChange={e=>change({gap:Number(e.target.value)})}/></label>

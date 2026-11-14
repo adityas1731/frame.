@@ -4,7 +4,7 @@ import { useContext, useEffect, useState, type ReactNode } from 'react';
 
 export const themes = ['graphite', 'midnight', 'forest', 'plum', 'ocean', 'espresso', 'slate', 'obsidian'] as const;
 export type Theme = typeof themes[number];
-export const sectionNames = { continue: 'Continue exploring', new: 'Recently added', picks: 'Picked for you', top: 'The top ten', shows: 'Your next great series' };
+export const sectionNames = { continue: 'Continue Watching', new: 'Recently added', picks: 'Recommended', top: 'Top Rated', shows: 'TV Shows' };
 export type Section = keyof typeof sectionNames;
 export interface Preferences {
   theme: Theme; episodeSize:'small'|'medium'|'large'; textScale: '90' | '100' | '110' | '125' | '140'; density: 'comfortable' | 'compact'; posterSize: 'small' | 'medium' | 'large';

@@ -1,3 +1,4 @@
+import {TagsSettings} from '../components/TagsSettings';
 import {visibleSettingsSection} from '../studio/activeSection';
 import {useEffect,useState} from 'react';
 import '../styles/settings-refinement.css';
@@ -31,14 +32,15 @@ export function Settings(){const {preferences:p}=usePreview();const [activeSecti
   schedule();window.addEventListener('scroll',schedule,{passive:true});window.addEventListener('resize',schedule);const observer=new ResizeObserver(schedule);const main=document.querySelector('.settings-main');if(main)observer.observe(main);
   return()=>{cancelAnimationFrame(frame);window.removeEventListener('scroll',schedule);window.removeEventListener('resize',schedule);observer.disconnect();};
  },[]);
- return <div className="content-page settings-page"><header className="page-heading"><span className="eyebrow">frame.</span><h1>Make Yourself At Home.</h1><p>A personal canvas for your collection.</p></header><div className="studio-settings-layout"><div className="settings-main"><ConnectionSettings/>
+ return <div className="content-page settings-page"><header className="page-heading"><span className="eyebrow">frame.</span><h1>Settings</h1><p>Appearance, playback and library preferences.</p></header><div className="studio-settings-layout"><div className="settings-main"><ConnectionSettings/>
  <AppearanceStudio/>
  <LayoutSettings/>
  <SkippingSettings/>
  <DevicesSettings/>
  <FeaturedSettings/>
  <HomeStudio/>
+ <TagsSettings/>
  <ProviderSettings/>
  {__FRAME_DIAGNOSTICS__&&<SettingsSection id="advanced-heading" title="Advanced"><div className="studio-panel"><Link className="button secondary" to="/settings/advanced/diagnostics">Diagnostics</Link><p className="studio-footnote">Internal playback and streaming information. No credentials or private server details are recorded.</p></div></SettingsSection>}
- </div><nav className="studio-settings-nav" aria-label="Settings sections"><span className="eyebrow">ON THIS PAGE</span>{[{id:'connection-heading',label:'Connection'},{id:'appearance-heading',label:'Appearance'},{id:'layout-heading',label:'Layout & Navigation'},{id:'playback-heading',label:'Playback'},{id:'devices-heading',label:'Devices'},{id:'featured-settings-heading',label:'Featured Banners'},{id:'home-heading',label:'Home Sections'},{id:'online-heading',label:'Online Metadata'},...(__FRAME_DIAGNOSTICS__?[{id:'advanced-heading',label:'Advanced'}]:[])].map((section,index)=><a key={section.id} href={`#${section.id}`} aria-current={activeSection===section.id?'location':undefined} onClick={e=>{e.preventDefault();setActiveSection(section.id);document.getElementById(section.id)?.scrollIntoView({behavior:p.reducedMotion?'instant':'smooth',block:'start'});}}><span>{String(index+1).padStart(2,'0')}</span>{section.label}</a>)}<Link className="settings-preview-link" to="/">Preview Your Home →</Link><p>Saved locally for this server and account. Your Jellyfin library remains unchanged.</p></nav></div></div>;}
+ </div><nav className="studio-settings-nav" aria-label="Settings sections"><span className="eyebrow">ON THIS PAGE</span>{[{id:'connection-heading',label:'Connection'},{id:'appearance-heading',label:'Appearance'},{id:'layout-heading',label:'Layout & Navigation'},{id:'playback-heading',label:'Playback'},{id:'devices-heading',label:'Devices'},{id:'featured-settings-heading',label:'Featured Banners'},{id:'home-heading',label:'Home Sections'},{id:'tags-heading',label:'Tags'},{id:'online-heading',label:'Online Metadata'},...(__FRAME_DIAGNOSTICS__?[{id:'advanced-heading',label:'Advanced'}]:[])].map((section,index)=><a key={section.id} href={`#${section.id}`} aria-current={activeSection===section.id?'location':undefined} onClick={e=>{e.preventDefault();setActiveSection(section.id);document.getElementById(section.id)?.scrollIntoView({behavior:p.reducedMotion?'instant':'smooth',block:'start'});}}><span>{String(index+1).padStart(2,'0')}</span>{section.label}</a>)}<Link className="settings-preview-link" to="/">View Home →</Link><p>Preferences are saved in this browser for each server and account.</p></nav></div></div>;}
 

@@ -15,7 +15,7 @@
  padding:.75rem 1.1rem;min-width:0;font:inherit;
 }
 /* Inputs inside an already styled search shell need no second outline. */
-:root body :is(.global-search,.inline-search,.search-stage,.search-field,.library-search) input {
+:root body :is(.global-search,.inline-search,.search-stage,.search-field,.library-search,.tag-title-search) input {
  background:transparent!important;border:0!important;padding:0!important;border-radius:0!important;
 }
 :root body .icon-button{border-radius:50%}

@@ -20,7 +20,7 @@ import type {BrowseQuery, ItemDto} from '../jellyfin/types';
 import {EmptyState} from '../components/Primitives';
 import type {CollectionMode} from './Library';
 import {RequestStatus, Pagination, LiveCard} from './LiveShared';
-const titles = { movies: 'A world of cinema.', shows: 'Find your next obsession.', library: 'Your whole world of stories.', search: 'Follow your curiosity.', favorites: 'Favorites', watchlist: 'Good things to look forward to.' };
+const titles = { movies: 'Movies', shows: 'TV Shows', library: 'Your Library', search: 'Search', favorites: 'Favorites', watchlist: 'Watchlist' };
 export function LiveBrowse({ mode }: { mode: CollectionMode }) {
   const { client, session } = useConnection();
   const {client:online}=useOnline();

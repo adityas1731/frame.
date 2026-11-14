@@ -10,10 +10,10 @@ export function ConnectionSettings() {
     <SettingsSection id="connection-heading" title="Server Connection">
       <div className="studio-panel studio-toggle-row">
         <div>
-          <strong>{session ? `Connected as ${session.user.Name}` : 'Explore Your Own Collection'}</strong>
+          <strong>{session ? `Connected as ${session.user.Name}` : 'Not Connected'}</strong>
           <p className="studio-footnote">
             {session
-              ? 'Browse your library and manage watched history. Your server controls access.'
+              ? 'Library access follows your Jellyfin account permissions.'
               : 'Mock mode · fictional media and original artwork.'}
           </p>
         </div>
@@ -25,7 +25,7 @@ export function ConnectionSettings() {
         <div className="studio-panel studio-toggle-row">
           <div>
             <strong>Remember Me On This Device</strong>
-            <p className="studio-footnote">Restore this Jellyfin session after reloads and browser restarts. Stores a script-readable token locally, never your password.</p>
+            <p className="studio-footnote">Stay signed in after closing the browser. This saves a token that site scripts can read, not your password. Turn it off on shared devices.</p>
           </div>
           <Toggle label="Remember me on this device" checked={remembered} onChange={rememberCurrent}/>
         </div>

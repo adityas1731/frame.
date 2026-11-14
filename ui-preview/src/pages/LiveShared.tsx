@@ -10,7 +10,7 @@ import {ServerArtwork} from '../components/ServerArtwork';
 import {usePreview} from '../state/PreviewContext';
 
 export function RequestStatus({ loading, error, retry, stale = false }: { loading: boolean; error?: string; retry: () => void; stale?: boolean }) {
-  return <>{loading && <p className="request-status" role="status">{stale ? 'Updating from Jellyfin…' : 'Loading your stories…'}</p>}{error && <div className="connection-error" role="alert">
+  return <>{loading && <p className="request-status" role="status">{stale ? 'Updating from Jellyfin…' : 'Loading titles…'}</p>}{error && <div className="connection-error" role="alert">
 <p>{error}{stale ? ' Previously loaded data is shown.' : ''}</p>
 <button className="button secondary" onClick={retry}>Try again</button>
 </div>}</>;

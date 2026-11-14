@@ -7,6 +7,7 @@ export interface ConnectionState {
   activate: (client: JellyfinClient, session: Session, remember: boolean) => void;
   disconnect: () => Promise<void>; forget: () => void;
   restoring:boolean; remembered:boolean; rememberCurrent:(remember:boolean)=>void; resumeSaved:()=>Promise<void>;
+  unavailable:boolean; reportUnavailable:(source:JellyfinClient)=>void;
 }
 // A separate stable module prevents context identity changes when provider UI hot-reloads.
 export const ConnectionContext = createContext<ConnectionState | null>(null);

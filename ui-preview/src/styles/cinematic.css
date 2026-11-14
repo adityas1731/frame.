@@ -9,9 +9,13 @@
 :root[data-layout='cinema'] body .sidebar{width:270px;z-index:51;padding:28px 22px;transform:translateX(-105%);visibility:hidden;transition:transform .3s var(--ease),visibility .3s;background:color-mix(in srgb,var(--canvas) 94%,transparent);border-right:1px solid var(--line-strong);box-shadow:25px 0 80px #0006}
 :root[data-layout='cinema'] body .nav-open .sidebar{transform:none;visibility:visible}
 :root[data-layout='cinema'] body .nav-scrim{position:fixed;inset:0;z-index:50;background:#0008;backdrop-filter:blur(8px);border:0}
-:root[data-layout='cinema'] body .sidebar .brand{justify-content:flex-start;gap:10px;margin:20px 0 40px}
+:root[data-layout='cinema'] body .sidebar .brand{justify-content:flex-start;gap:10px;margin:20px 0 30px}
 :root[data-layout='cinema'] body .sidebar :is(.brand-word,.nav-label,.nav-text,.profile-info){display:revert}
-:root[data-layout='cinema'] body .sidebar .nav-item{justify-content:flex-start;gap:16px;padding:14px 12px;font-size:1.05rem}
+:root[data-layout='cinema'] body .sidebar-body>.nav-label{display:block;margin:0 0 14px;padding:0 12px;font:650 .85rem/1.4 system-ui,sans-serif;letter-spacing:.08em;color:var(--muted);text-transform:none}
+:root[data-layout='cinema'] body .sidebar-body>.personal-label{margin-top:28px;padding-top:22px;border-top:1px solid var(--line)}
+:root[data-layout='cinema'] body .sidebar-body>nav{display:grid;gap:2px;margin:0;padding:0}
+:root[data-layout='cinema'] body .sidebar-body>nav>.nav-item{margin:0}
+:root[data-layout='cinema'] body .sidebar .nav-item{justify-content:flex-start;gap:16px;min-height:48px;padding:12px;font-size:1.05rem}
 :root[data-layout='cinema'] body .sidebar .profile{justify-content:flex-start;gap:12px}
 :root[data-layout='cinema'] body .drawer-close{display:flex;position:absolute;top:20px;right:18px}
 :root[data-layout='cinema'] body .topbar{position:absolute;top:0;left:0;right:0;z-index:12;height:94px;padding:0 var(--page-padding);display:flex;gap:30px;background:linear-gradient(180deg,#080a10bd,transparent);border:0;backdrop-filter:none}

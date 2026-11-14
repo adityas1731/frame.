@@ -31,7 +31,7 @@ export function LibraryPage({ mode }: { mode: CollectionMode }) {
   const isSearch = mode === 'search';
   const requestedStart=Number(params.get('start')??0);const start=Number.isSafeInteger(requestedStart)&&requestedStart>0?Math.min(requestedStart,Math.max(0,Math.ceil(items.length/layout.value.pageSize)-1)*layout.value.pageSize):0;
   const visibleItems=customLayout?items.slice(start,start+layout.value.pageSize):items;
-  const pageDescription = mode === 'movies' ? 'From quiet discoveries to extraordinary adventures.' : mode === 'shows' ? 'A new world is only an episode away.' : mode === 'watchlist' ? 'Save a little inspiration for another evening.' : mode === 'favorites' ? 'Some stories stay with you. Keep them close.' : isSearch ? 'Search by title, genre, director, or cast.' : `${media.filter(m => m.kind === 'movie').length} films. ${media.filter(m => m.kind === 'show').length} series. Endless possibilities.`;
+  const pageDescription = mode === 'movies' ? 'Browse movies.' : mode === 'shows' ? 'Browse TV shows.' : mode === 'watchlist' ? 'Titles saved to your watchlist.' : mode === 'favorites' ? 'Titles marked as favorites.' : isSearch ? 'Search by title, genre, director, or cast.' : `${media.filter(m => m.kind === 'movie').length} films. ${media.filter(m => m.kind === 'show').length} series. `;
   const hasSpotlight=['movies','shows'].includes(mode)&&!q&&genre==='All genres'&&items.length>0;
   return <div className={`content-page collection-page ${hasSpotlight?'collection-page-hero':''}`}>
 {!hasSpotlight&&<header className={`page-heading ${customLayout?'collection-page-heading':''}`}>
@@ -72,10 +72,10 @@ export function LibraryPage({ mode }: { mode: CollectionMode }) {
 </div>}
 </div>
 </div>
-    {!isSearch && !['favorites', 'watchlist'].includes(mode) && <div className="genre-chips">{['All genres', 'Adventure', 'Drama', 'Science Fiction', 'Thriller', 'Nature'].map(g => <button key={g} className={genre === g ? 'active' : ''} onClick={() => update('genre', g)}>{g === 'All genres' ? 'All stories' : g}</button>)}</div>}
-    {isSearch && !q && <p className="search-hint">A little inspiration: <button onClick={() => update('q', 'Adventure')}>an adventure</button>
-<button onClick={() => update('q', 'Nature')}>a quieter world</button>
-<button onClick={() => update('q', 'Drama')}>a human story</button>
+    {!isSearch && !['favorites', 'watchlist'].includes(mode) && <div className="genre-chips">{['All genres', 'Adventure', 'Drama', 'Science Fiction', 'Thriller', 'Nature'].map(g => <button key={g} className={genre === g ? 'active' : ''} onClick={() => update('genre', g)}>{g === 'All genres' ? 'All Titles' : g}</button>)}</div>}
+    {isSearch && !q && <p className="search-hint">Try a genre: <button onClick={() => update('q', 'Adventure')}>Adventure</button>
+<button onClick={() => update('q', 'Nature')}>Nature</button>
+<button onClick={() => update('q', 'Drama')}>Drama</button>
 </p>}
     {items.length ? customLayout||view === 'grid' ? <div className={customLayout?collectionGridClass(layout.value):"media-grid"} style={customLayout?layout.style:undefined}>{visibleItems.map(item => <MediaCard key={item.id} item={item} showTitles={customLayout?layout.value.titles:undefined} showRatings={customLayout?layout.value.ratings:undefined}/>)}</div> : <div className="media-list">{items.map(item => <article key={item.id} className="media-list-entry"><WatchedToggle demoId={item.id} title={item.title}/><Link to={`/item/${item.id}`} className="media-list-item">
 <div className="list-art">
@@ -88,7 +88,7 @@ export function LibraryPage({ mode }: { mode: CollectionMode }) {
 </div>
 <span>{item.year}</span>
 <span className="list-duration">{item.kind === 'show' ? `${item.seasons} seasons` : duration(item.runtime)}</span>{preferences.showRatings && <span className="score">
-<Star size={13}/>{item.score}</span>}</Link></article>)}</div> : <EmptyState title={q || genre !== 'All genres' ? 'No stories found just yet.' : mode === 'favorites' ? 'Room for your favorites.' : 'Your next chapter starts here.'} description={q || genre !== 'All genres' ? 'Try a different title, person, or genre.' : 'Explore the library and save something that catches your eye.'}>{q || genre !== 'All genres' ? <button className="button secondary" onClick={() => setParams({})}>Clear filters</button> : <Link className="button primary" to="/library">{mode === 'favorites' ? <Heart size={16}/> : <Bookmark size={16}/>} Explore the library</Link>}</EmptyState>}
+<Star size={13}/>{item.score}</span>}</Link></article>)}</div> : <EmptyState title={q || genre !== 'All genres' ? 'No Matching Titles' : mode === 'favorites' ? 'No Favorites Yet' : 'No Titles Yet'} description={q || genre !== 'All genres' ? 'Try a different title, person, or genre.' : 'Browse your library to find titles.'}>{q || genre !== 'All genres' ? <button className="button secondary" onClick={() => setParams({})}>Clear filters</button> : <Link className="button primary" to="/library">{mode === 'favorites' ? <Heart size={16}/> : <Bookmark size={16}/>} Browse Library</Link>}</EmptyState>}
     {customLayout&&items.length>layout.value.pageSize&&<Pagination start={start} total={items.length} count={visibleItems.length} pageSize={layout.value.pageSize} loading={false} change={next=>{update('start',String(next));window.scrollTo({top:0,behavior:'instant'});}}/>}
   </div>;
 }

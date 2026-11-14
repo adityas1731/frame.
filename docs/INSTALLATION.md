@@ -4,8 +4,6 @@ Requires Jellyfin Server 12.3 and server administrator access. Windows and dispo
 
 ## Plugin Catalog
 
-The catalog is not published yet. These steps apply once the release and catalog are available.
-
 1. Back up Jellyfin's data, configuration and installed plugins. Stop all playing or paused sessions before the installation restart.
 2. Open Jellyfin's **Dashboard → Plugins → Repositories**. Add a repository named `frame.` with this URL:
 
@@ -21,9 +19,9 @@ The catalog points to published GitHub Release files. It does not install source
 
 ## Manual Installation
 
-1. Download `frame-jellyfin-1.0.3.0-release-98d16e024c68.zip` and `SHA256SUMS` from release `v1.0.3`. Check the ZIP's SHA-256 against that file. Do not install a source archive or Internal Diagnostics build.
+1. Download the Release plugin ZIP and `SHA256SUMS` from the [chosen GitHub release](https://github.com/adityas1731/frame./releases). Check the ZIP's SHA-256 against that file. Do not install a source archive or Internal Diagnostics build.
 2. Back up Jellyfin and the installed plugin. Stop all playing or paused sessions, then stop the server normally.
-3. Find your installation's `plugins` directory. Extract the complete ZIP into `plugins/Frame_1.0.3.0/`, with `Frame.Jellyfin.dll` directly inside. Move the previous Frame version outside `plugins` and keep it for rollback. Leave other plugins and their configuration alone.
+3. Find your installation's `plugins` directory. Extract the complete ZIP into `plugins/Frame_<version>/`, using the package's four-part version, with `Frame.Jellyfin.dll` directly inside. Move the previous Frame version outside `plugins` and keep it for rollback. Leave other plugins and their configuration alone.
 4. Start Jellyfin and check the installed plugin list. Open `/Frame/Web/` as described above.
 
 Windows tray installations normally use `%ProgramData%\Jellyfin\Server\plugins`. Direct Windows installs normally use `%LocalAppData%\jellyfin\plugins`. Packaged Linux installs commonly use `/var/lib/jellyfin/plugins`. Containers use the plugin directory in their mounted configuration. Custom installations may use another location. See [Jellyfin's plugin guide](https://jellyfin.org/docs/general/server/plugins/).

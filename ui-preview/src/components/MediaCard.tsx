@@ -17,7 +17,7 @@ export function MediaCard({ item, landscape = false, rank, continueWatching = fa
     <div className="poster">
       <Artwork item={item}/>
       <div className="poster-vignette"/>
-      <span className="poster-kicker">{item.art === 'forest' || item.art === 'coast' ? 'A different perspective' : 'An original story'}</span>
+      <span className="poster-kicker">{item.art === 'forest' || item.art === 'coast' ? 'Demo Series' : 'Demo Movie'}</span>
       <span className={`poster-title poster-font-${item.art}`}>{item.title}</span>
       <span className="poster-credit">{item.director.toUpperCase()}</span>
       <Link className="poster-link" to={`/item/${item.id}`} aria-label={`View ${item.title}`}/>

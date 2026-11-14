@@ -8,14 +8,11 @@ import { StudioProvider } from '../studio/StudioContext';
 import { OnlineProvider } from '../providers/OnlineProvider';
 import { HashRouter, Link, Route, Routes } from 'react-router';
 import { PreviewProvider } from '../state/PreviewContext';
-import { Home } from '../pages/Home';
-import { LibraryPage } from '../pages/Library';
-import { Detail, Person } from '../pages/Detail';
+import {ConnectionGate} from '../components/ConnectionGate';
 import { Settings } from '../pages/Settings';
 import { EmptyState } from '../components/Primitives';
 import { Shell } from './Shell';
 import { ConnectionProvider } from '../jellyfin/ConnectionContext';
-import { useConnection } from '../jellyfin/useConnection';
 import { Connect } from '../pages/Connect';
 import { LiveHome, LiveBrowse, LiveDetail } from '../pages/Live';
 import type { CollectionMode } from '../pages/Library';
@@ -24,15 +21,15 @@ import { PlayerRoute } from '../playback/Player';
 const PlayerPreviewRoute=import.meta.env.DEV?lazy(()=>import('../playback/PlayerPreviewRoute')):undefined;
 const DiagnosticsPage=__FRAME_DIAGNOSTICS__?lazy(()=>import('../diagnostics/DiagnosticsPage')):undefined;
 
-function HomeRoute() { return useConnection().session ? <LiveHome/> : <Home/>; }
-function LibraryRoute({ mode }: { mode: CollectionMode }) { return useConnection().session ? <LiveBrowse mode={mode}/> : <LibraryPage mode={mode}/>; }
-function DetailRoute() { return useConnection().session ? <LiveDetail/> : <Detail/>; }
-function PersonRoute() { return useConnection().session ? <div className="content-page"><EmptyState title="A Story For Another Chapter." description="Jellyfin person browsing is not enabled in this milestone."/></div> : <Person/>; }
+function HomeRoute() { return <LiveHome/>; }
+function LibraryRoute({ mode }: { mode: CollectionMode }) { return <LiveBrowse mode={mode}/>; }
+function DetailRoute() { return <LiveDetail/>; }
+function PersonRoute() { return <div className="content-page"><EmptyState title="Person Browsing Unavailable" description="Open this person in Jellyfin to see their titles."/></div>; }
 
 export function App() {
   return <PreviewProvider>
 <ConnectionProvider><WatchlistProvider><StudioProvider><TitleTagsProvider><OnlineProvider><HashRouter>
-<Routes>
+<ConnectionGate><Routes>
 {import.meta.env.DEV&&PlayerPreviewRoute&&<Route path="player-preview" element={<Suspense fallback={<p>Loading preview…</p>}><PlayerPreviewRoute/></Suspense>}/>}
 <Route path="play/:itemId" element={<PlayerRoute/>}/>
 <Route element={<Shell/>}>
@@ -55,7 +52,7 @@ export function App() {
 </EmptyState>
 </div>}/>
 </Route>
-</Routes>
+</Routes></ConnectionGate>
 </HashRouter></OnlineProvider></TitleTagsProvider></StudioProvider></WatchlistProvider></ConnectionProvider>
 </PreviewProvider>;
 }

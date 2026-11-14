@@ -14,8 +14,9 @@ export function ConnectionProvider({children}:{children:ReactNode}) {
  const [remembered,setRemembered]=useState(!!initial);
  const [restoring,setRestoring]=useState(!!initial);
  const [message,setMessage]=useState('');
+ const [unavailable,setUnavailable]=useState(false);
  const generation=useRef(0);const pending=useRef<JellyfinClient|null>(null);
- function forget(){saveRememberedSession(deviceStore,null);saveSession(tabStore,null);setSaved(null);setRemembered(false);}
+ function forget(){saveRememberedSession(deviceStore,null);saveSession(tabStore,null);setSaved(null);setRemembered(false);setUnavailable(false);}
  function createClient(url:string,transport?:Fetcher,deviceId:string=randomId()) {
   const client=new JellyfinClient(url,deviceId,transport,()=>{
    if(activeRef.current?.client===client){client.dispose();activeRef.current=null;setActive(null);forget();setMessage('Your Jellyfin session expired or was revoked. Sign in again from Server connection.');}
@@ -28,10 +29,10 @@ export function ConnectionProvider({children}:{children:ReactNode}) {
  }
  function activate(client:JellyfinClient,session:Session,remember:boolean){
   const old=activeRef.current;if(old&&old.client!==client)old.client.dispose();
-  const next={client,session};activeRef.current=next;setActive(next);setMessage('');persist(session,remember);
+  const next={client,session};activeRef.current=next;setActive(next);setUnavailable(false);setMessage('');persist(session,remember);
  }
  function rememberCurrent(remember:boolean){const current=activeRef.current;if(current){setMessage('');persist(current.session,remember);}}
- async function restore(session:Session,allowHttp:boolean){
+ async function restore(session:Session,allowHttp:boolean,remember=true){
   const turn=++generation.current;pending.current?.dispose();setRestoring(true);setMessage('');
   let client:JellyfinClient|undefined;
   try {
@@ -45,24 +46,25 @@ export function ConnectionProvider({children}:{children:ReactNode}) {
    client=createClient(base,transport,session.deviceId);pending.current=client;client.restore(session);
    const user=await client.validateSession(session);
    if(turn!==generation.current){client.dispose();return;}
-   pending.current=null;activate(client,{...session,user},true);client=undefined;
+   pending.current=null;activate(client,{...session,user},remember);client=undefined;
   }catch(error){
    client?.dispose();
    if(turn!==generation.current)return;
-   if(error instanceof JellyfinError&&[401,403,409].includes(error.status)){forget();setMessage('The saved Jellyfin session is no longer valid. Sign in again.');}
-   else setMessage('Jellyfin is unavailable. Your saved sign-in is kept. Reconnect when your server is back.');
+   if(error instanceof JellyfinError&&[401,403,409].includes(error.status)){activeRef.current?.client.dispose();activeRef.current=null;setActive(null);setUnavailable(false);forget();setMessage('The saved Jellyfin session is no longer valid. Sign in again.');}
+   else {setUnavailable(true);setMessage('Jellyfin is unavailable. Your saved sign-in is kept. Reconnect when your server is back.');}
   }finally{if(turn===generation.current){pending.current=null;setRestoring(false);}}
  }
- async function resumeSaved(){if(saved)await restore(saved,saved.baseUrl.startsWith('http:'));}
- function useMock(){generation.current++;pending.current?.dispose();pending.current=null;setRestoring(false);setMessage('Automatic connection paused for this visit. You can retry your saved connection or sign in below.');}
+ async function resumeSaved(){const current=activeRef.current?.session??saved;if(current)await restore(current,current.baseUrl.startsWith('http:'),activeRef.current?remembered:true);}
+ function reportUnavailable(source:JellyfinClient){if(activeRef.current?.client===source)setUnavailable(true);}
+ function showSignIn(){generation.current++;pending.current?.dispose();pending.current=null;setRestoring(false);setMessage('');window.location.hash='/connect';}
  useEffect(()=>{
   if(initial)void restore(initial.session,initial.allowHttp);
   return()=>{generation.current++;pending.current?.dispose();pending.current=null;};
  },[]);
  async function disconnect(){
   generation.current++;pending.current?.dispose();pending.current=null;setRestoring(false);
-  const old=activeRef.current;activeRef.current=null;setActive(null);forget();setMessage('');
+  const old=activeRef.current;activeRef.current=null;setActive(null);setUnavailable(false);forget();setMessage('');
   if(old)try{await old.client.logout();}catch{setMessage('Signed out locally. Server logout could not be confirmed; revoke the session in Jellyfin if necessary.');}
  }
- return <Context value={{client:active?.client??null,session:active?.session??null,saved,message,restoring,remembered,rememberCurrent,resumeSaved,createClient,activate,disconnect,forget}}>{restoring?<main className="session-restoring" aria-busy="true"><h1>Welcome Back.</h1><p role="status">Restoring your Jellyfin connection…</p><button className="button secondary" onClick={useMock}>Go To Sign In</button></main>:children}</Context>;
+ return <Context value={{client:active?.client??null,session:active?.session??null,saved,message,restoring,remembered,rememberCurrent,resumeSaved,createClient,activate,disconnect,forget,unavailable,reportUnavailable}}>{restoring?<main className="session-restoring" aria-busy="true"><h1>Connecting To Jellyfin</h1><p role="status">Checking your saved sign-in…</p><button className="button secondary" onClick={showSignIn}>Connection Settings</button></main>:children}</Context>;
 }

@@ -1,6 +1,6 @@
 import {test} from 'node:test';
 import assert from 'node:assert/strict';
-import {resolutionCap,resolutionOptions,frameDimensions} from '../src/playback/resolution.ts';
+import {resolutionCap,resolutionOptions,frameDimensions,resolutionLabel,bitrateLabel} from '../src/playback/resolution.ts';
 import {deviceProfile} from '../src/playback/capabilities.ts';
 import {playbackBody,parsePlaybackInfo} from '../src/playback/protocol.ts';
 import {runtimePlan} from '../src/playback/planner.ts';
@@ -21,4 +21,10 @@ test('requested resolution cannot silently become a direct stream or bypass deni
  const info=parsePlaybackInfo({PlaySessionId:'session',MediaSources:[source]});const selection={startTicks:80000000,maxBitrate:40000000,maxHeight:720};
  assert.equal((await runtimePlan('item',info,support,selection,'device')).mode,'transcode');
  info.MediaSources[0].SupportsTranscoding=false;await assert.rejects(runtimePlan('item',info,support,selection,'device'),/No compatible/);
+});
+
+
+test('compact quality labels use decoded height and explicit bitrate units',()=>{
+ assert.equal(resolutionLabel(2160),'2160p');assert.equal(resolutionLabel(1080),'1080p');assert.equal(resolutionLabel(0),undefined);assert.equal(resolutionLabel(Infinity),undefined);
+ assert.equal(bitrateLabel(40000000),'40 Mbps');assert.equal(bitrateLabel(12500000),'12.5 Mbps');assert.equal(bitrateLabel(0),undefined);
 });

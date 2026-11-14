@@ -12,7 +12,7 @@ body{user-select:none;-webkit-user-select:none}input,textarea,[contenteditable=t
 .banner-picker{margin:16px 0 24px}.banner-options{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px;margin:16px 0;max-height:390px;overflow:auto;padding:3px}.banner-options button{padding:0;overflow:hidden;border:1px solid var(--line-strong);border-radius:12px;background:var(--surface);text-align:left;min-width:0}.banner-options img{display:block;width:100%;aspect-ratio:16/9;object-fit:cover}.banner-options button[aria-pressed='true']{outline:2px solid var(--accent);outline-offset:1px}.banner-options span{display:block;padding:8px 10px;font-size:.8rem;color:var(--muted)}
 
 .manage-title-modal{width:min(44rem,calc(100vw - 2rem));padding:1.6rem 1.8rem}
-.manage-title-modal>header h2{font-size:1.5rem;margin:0}.manage-title-context{margin:-.3rem 0 1.5rem;color:var(--muted);font-size:.95rem}
+.manage-title-modal>header h2{font-size:1.5rem;margin:0}body .modal.manage-title-modal>.manage-title-context{margin:0 0 1.5rem;color:var(--text);font-size:1.25rem;font-weight:600;line-height:1.4;letter-spacing:-.015em;overflow-wrap:anywhere}
 .manage-title-section{padding:1.2rem 0;border-top:1px solid var(--line-strong)}.manage-title-section>h3{font-size:.8rem;letter-spacing:.07em;color:var(--muted);margin:0 0 .5rem}
 .manage-title-section .identify-entry{margin:0;border:0;padding:.75rem 0}.manage-title-section .identify-entry strong{font-size:1.05rem}.manage-title-section .identify-entry small{font-size:.9rem}
 .artwork-editor+.artwork-editor{border-top:1px solid var(--line-strong)}.artwork-editor-trigger{width:100%;display:flex;align-items:center;gap:14px;padding:1rem 0;border:0;background:none;color:var(--text);text-align:left;font:inherit;cursor:pointer}

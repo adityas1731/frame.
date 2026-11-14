@@ -46,7 +46,7 @@ export function LiveDetail() {
 <h1>{itemTitle(item)}</h1>
 <div className="detail-meta">
 <Score item={item}/>{item.ProductionYear && <span>{item.ProductionYear}</span>}{item.OfficialRating && <span className="rating-badge">{item.OfficialRating}</span>}{item.Type!=='Series'&&runtime(item) && <span>{runtime(item)}</span>}</div><div className="detail-actions">
-<div className="detail-play-stack"><WatchButton item={data.data!}/>{!!data.data?.UserData?.PlaybackPositionTicks&&item.Type!=='Series'&&<div className="detail-start-over"><WatchButton item={data.data!} restart/></div>}</div><div className="detail-saves" role="group" aria-label="Save this title"><FavoriteToggle item={data.data!} variant="button"/><WatchlistToggle item={data.data!} variant="button"/></div>
+<div className="detail-play-stack"><WatchButton item={data.data!}/></div><div className="detail-saves" role="group" aria-label="Save this title"><FavoriteToggle item={data.data!} variant="button"/><WatchlistToggle item={data.data!} variant="button"/></div>{!!data.data?.UserData?.PlaybackPositionTicks&&item.Type!=='Series'&&<div className="detail-restart-action"><WatchButton item={data.data!} restart/></div>}
 </div>
 </div>
 </section>
@@ -81,11 +81,11 @@ export function LiveDetail() {
 <CastSection item={data.data!} online={rich.online}/>
 </>}
       <p className="preview-footnote">
-<Info size={14}/> Playback saves your viewing progress to Jellyfin. Identification and metadata remain unchanged.</p>
+<Info size={14}/> Playback progress is saved to Jellyfin.</p>
     </div>
     {info && <Modal title="Manage Title" className="manage-title-modal" onClose={() => setInfo(false)}>
 <p className="manage-title-context">{itemTitle(item)}</p>
-{session?.user.Policy?.IsAdministrator&&['Movie','Series'].includes(item.Type??'')&&<section className="manage-title-section"><h3>Metadata</h3><button className="identify-entry" onClick={()=>{setInfo(false);setIdentifying(true);}}><span><strong>Match &amp; Update Metadata</strong><small>Choose the right movie or series</small></span><ChevronRight size={18}/></button></section>}
+{session?.user.Policy?.IsAdministrator&&['Movie','Series'].includes(item.Type??'')&&<section className="manage-title-section"><h3>Metadata</h3><button className="identify-entry" onClick={()=>{setInfo(false);setIdentifying(true);}}><span><strong>Match &amp; Update Metadata</strong><small>Search by title or provider link</small></span><ChevronRight size={18}/></button></section>}
 <TitleTagsEditor id={item.Id}/><section className="manage-title-section"><h3>Artwork</h3><RefreshArtwork item={data.data!}/><ArtworkPicker item={data.data!} kind="banner"/><ArtworkPicker item={data.data!} kind="card"/></section>
 <details className="manage-media-details"><summary><span>Media Details</span><small>{coverage.present} fields available</small></summary><div>
 <p className="muted">Metadata supplied by Jellyfin.</p>
@@ -94,7 +94,7 @@ export function LiveDetail() {
 <dt>{provider}</dt>
 <dd>{id}</dd>
 </div>)}</dl>
-{credits.conflict&&<section aria-label="Director credit conflict"><h3>Director Credit Conflict</h3><p>Jellyfin lists: {credits.serverNames.join(', ')}.</p><p>frame. displays reviewed director credits. {credits.url&&<a href={credits.url} target="_blank" rel="noopener noreferrer" referrerPolicy="no-referrer">Source reference</a>} The server record has not been changed.</p></section>}
+{credits.conflict&&<section aria-label="Director credit conflict"><h3>Director Credit Conflict</h3><p>Jellyfin lists: {credits.serverNames.join(', ')}.</p><p>These director credits differ from Jellyfin’s record. {credits.url&&<a href={credits.url} target="_blank" rel="noopener noreferrer" referrerPolicy="no-referrer">View Source</a>} Jellyfin’s record is unchanged.</p></section>}
  </div></details>
 </Modal>}
 <IdentifyMedia item={data.data!} visible={identifying} onClose={()=>setIdentifying(false)} onApplied={data.retry}/>

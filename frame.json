@@ -1,7 +1,7 @@
 {
-  "version": "1.0.5.0",
+  "version": "1.0.6.0",
   "jellyfinAbi": "12.3.0.0",
   "node": "24.18.0",
   "dotnet": "10.0.403",
-  "releaseNotes": "Fix subtitle track discovery and add custom SRT/VTT loading with explicit Jellyfin saving. Improve artwork selection, banner customization, collection layouts, navigation and connection screens."
+  "releaseNotes": "Refine playback settings and controls, add tag management with reusable tags, and replace offline demo content with a connection screen. Add ticket-style Watch and Resume buttons with episode labels and a half-second hold after the tear animation."
 }

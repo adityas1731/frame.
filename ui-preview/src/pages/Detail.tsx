@@ -28,7 +28,7 @@ export function Detail() {
   const [info, setInfo] = useState(false);
   useEffect(() => { setTab('overview'); setSeason('1'); setEpisode(null); setInfo(false); }, [itemId]);
   if (!item) return <div className="content-page">
-<EmptyState title="This Story Took A Different Turn." description="We couldn’t find that title in the demo library.">
+<EmptyState title="Title Not Found" description="We couldn’t find that title in the demo library.">
 <Link className="button primary" to="/library">Back to the library</Link>
 </EmptyState>
 </div>;
@@ -90,7 +90,7 @@ export function Detail() {
 </div>
 <CastCarousel people={item.cast.map((Name,i)=>({Name,Role:i===0?'Lead':'Supporting'}))} personLink={person=>`/person/${encodeURIComponent(person.Name??'')}`}/>{item.kind === 'show' && <button className="season-callout" onClick={() => setTab('episodes')}>
 <span>
-<strong>A new chapter is waiting.</strong>
+<strong>Next Episode</strong>
 <small>Explore {item.seasons} seasons of {item.title}</small>
 </span>
 <ArrowRight size={22}/>
@@ -109,14 +109,14 @@ export function Detail() {
 <span className="episode-description">
 <small>SEASON {season} · EPISODE {i + 1}</small>
 <strong>{title}</strong>
-<span>A fresh perspective brings familiar faces together as a new piece of the story unfolds.</span>
+<span>Episode details are not available in this demo.</span>
 </span>
 <span className="episode-runtime">{formatMinutes(item.runtime + (i * 3) % 8)}<ChevronRight size={16}/>
 </span>
 </button></article>)}</div>
 </section>}
       {tab === 'related' && <div role="tabpanel" id="panel-related" aria-labelledby="tab-related">
-<MediaRow title="Stay In This World A Little Longer." items={related} to={`/library?genre=${encodeURIComponent(item.genres[0])}`}/>
+<MediaRow title="Related Titles" items={related} to={`/library?genre=${encodeURIComponent(item.genres[0])}`}/>
 </div>}
       <div className="preview-footnote">
 <Info size={14}/>
@@ -127,7 +127,7 @@ export function Detail() {
 <div className="episode-modal-art">
 <Artwork item={item}/>
 </div>
-<p>In this fictional episode of {item.title}, an unexpected discovery brings a new perspective to the journey. Old questions find new answers, and a familiar place begins to feel different.</p>
+<p>This is a sample episode of {item.title}.</p>
 <p className="muted">{formatMinutes(item.runtime + (episode * 3) % 8)} · {item.rating} · Mock episode details</p>
 <button className="button primary" onClick={() => { notify('Episode marked as explored'); setEpisode(null); }}>Mark as explored <Check size={16}/>
 </button>
@@ -173,7 +173,7 @@ export function Person() {
 <h1>{name || 'Unknown person'}</h1>
 <p>Fictional performer · Demo filmography</p>
 </div>
-</header>{items.length ? <MediaRow title="In Your Library" items={items}/> : <EmptyState title="A Story Still To Be Told." description="This person isn’t in the demo catalog."/>}</div>;
+</header>{items.length ? <MediaRow title="In Your Library" items={items}/> : <EmptyState title="Person Not Found" description="This person isn’t in the demo catalog."/>}</div>;
 }
 
 

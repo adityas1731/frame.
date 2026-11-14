@@ -36,16 +36,16 @@ export function Connect() {
 <h1>Connect To Jellyfin</h1>
 <p>Sign in to open your library.</p>
 </header>
-    {hostedServer && <p className="connection-note">Server address detected from this Jellyfin-hosted frame. page, including its Base URL. You can change it below.</p>}
+    {hostedServer && <p className="connection-note">This server address was filled in from the current page. Change it if needed.</p>}
     {playbackRequirement && <p className="connection-note" role="status">{hostedServer?'Playback stays in frame. using this server’s item-scoped media relay. No extra sign-in or certificate is needed.':playbackRequirement}</p>}
     {connection.message && <p className="connection-note" role="status">{connection.message}</p>}
-    {connection.session ? <section className="settings-group connection-card">
+    {connection.session && !connection.unavailable ? <section className="settings-group connection-card">
 <Server size={25}/>
 <h2>{connection.session.server.ServerName}</h2>
 <p>Signed in as {connection.session.user.Name} · Jellyfin {connection.session.server.Version}</p>
-<p>Your server controls library access and metadata. frame. does not edit or identify media.</p>
+<p>Library access follows your Jellyfin account permissions.</p>
 <label className="check-label"><input type="checkbox" checked={connection.remembered} onChange={e=>connection.rememberCurrent(e.target.checked)}/>Remember me on this device</label>
-<p className="muted">Keeps the session token locally and reconnects automatically. Your password is never saved. Sign out removes the remembered sign-in.</p>
+<p className="muted">Saves a session token in this browser, not your password. Signing out removes it.</p>
 <div className="modal-actions">
 <Link className="button primary" to="/library">Browse libraries</Link>
 <button className="button secondary" onClick={() => { void connection.disconnect(); }}>Sign Out</button>
@@ -85,9 +85,9 @@ export function Connect() {
     </section>
 <aside className="connection-card connection-privacy">
 <ShieldCheck size={25}/>
-<h2>Your Sign-In Stays With You</h2>
-<p>frame. connects directly to your Jellyfin server. Your password is used to sign in and is never saved. With Remember Me on, this browser keeps a session token so you can return without signing in again. Leave it off on a shared device. Signing out removes the saved token.</p>
-<p>The token is stored in this browser, where scripts running on this site and browser extensions may be able to read it. Use HTTPS to protect traffic between your device and server. If they use different addresses, Jellyfin must allow the connection through CORS.</p>
+<h2>Sign-In & Privacy</h2>
+<p>frame. connects to your Jellyfin server and never saves your password. Remember Me keeps a sign-in token in this browser. Leave it off on shared devices. Signing out removes the token.</p>
+<p>Site scripts and browser extensions may be able to read the saved token. HTTPS protects traffic to your server. When frame. and Jellyfin use different origins, Jellyfin must allow the connection through CORS.</p>
 <p>If you have a saved sign-in, frame. checks it with your server when you open the app. Otherwise, it waits until you test a connection.</p>
 </aside>
 </div>}

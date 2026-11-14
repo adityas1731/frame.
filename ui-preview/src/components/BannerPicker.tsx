@@ -31,7 +31,7 @@ export function ArtworkPicker({item,kind}:{item:ItemDto;kind:ArtworkKind}) {
   return <section className={`artwork-editor artwork-editor-${kind}`}>
     <button className="artwork-editor-trigger" aria-expanded={open} aria-controls={panelId} onClick={()=>setOpen(!open)}>
       <span className="artwork-editor-icon">{banner?<RectangleHorizontal size={22}/>:<RectangleVertical size={22}/>}</span>
-      <span><strong>{banner?'Banner Artwork':'Card Artwork'}</strong><small>{banner?'The backdrop behind this title':'The poster used throughout your library'}</small></span>
+      <span><strong>{banner?'Banner Artwork':'Card Artwork'}</strong><small>{banner?'Used on this title’s banner':'Used on this title’s cards'}</small></span>
       <ChevronDown size={18}/>
     </button>
     {open&&<div className="artwork-editor-body" id={panelId}>
@@ -52,7 +52,7 @@ export function RefreshArtwork({item}:{item:ItemDto}){
   if(!['Movie','Series'].includes(item.Type??''))return null;
   async function refresh(){
     if(!client||busy)return;setBusy(true);setMessage('');
-    try{const result=await client.refreshArtwork(item);artworkRefreshed(item.Id);setMessage(result.backdrops.length||result.posters.length?'Artwork rechecked. Your selected and custom images are kept.':'No matching artwork returned by Jellyfin’s TMDb provider.');}
+    try{const result=await client.refreshArtwork(item);artworkRefreshed(item.Id);setMessage(result.backdrops.length||result.posters.length?'Artwork checked. Selected and uploaded images are unchanged.':'No matching artwork returned by Jellyfin’s TMDb provider.');}
     catch{setMessage('Artwork could not be rechecked. Try again when the server is available.');}
     finally{setBusy(false);}
   }
