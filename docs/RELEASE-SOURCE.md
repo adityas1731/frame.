@@ -1,5 +1,17 @@
 # Release Source
 
+## 1.0.6.0
+
+Build revision: `2d6da50ff9059135a33b3d5dc8ae009e9a1abcf8`. The approved Release ZIP is `frame-jellyfin-1.0.6.0-release-a16015d91ef9.zip`, SHA-256 `a16015d91ef91ed81dfefe5be8ff7dbd0f056909e28581c14b98eb299e2c1298`.
+
+The matching source archive is `frame-source-1.0.6.0-public-7eb287ffc198.zip`, SHA-256 `7eb287ffc19859dea988beb60632b6d653a41bc420c42005c3121fb9a4bbc45d`. It contains all 398 tracked files at the build revision. `release/source-files-1.0.6.0.json` records 232 implementation/build inputs; the package also records a fingerprint of the complete source tree. Release records are committed after the build to avoid self-referencing archive hashes.
+
+Two fresh Windows checkouts with Node 24.18.0 and .NET 10.0.403 produced identical ZIP bytes. A package from an existing build directory differed because a generated target-framework attribute file had old line endings; it was not selected for publication. Use a clean checkout when reproducing this release. The dependency lock and notices are unchanged, so this release retains the dependency-source supplement documented below.
+
+Validation: both frontend profiles passed 491 tests, TypeScript and resource isolation checks; host policies passed; all seven asset-backed publication tests passed. Disposable Jellyfin 12.3 installed 1.0.4.0 through a test catalogue, upgraded to the exact 1.0.6.0 payload, and passed restart, authentication/logout, Frame resources and original Jellyfin Web checks. No production server or real media was used. Physical Safari testing is not claimed.
+
+## Historical 1.0.3.0
+
 The approved Windows-built 1.0.3.0 plugin comes from revision `89283d3a9c582906667e2c3a56ffb72d28ae0b13`. Its SHA-256 is:
 
 ```text
