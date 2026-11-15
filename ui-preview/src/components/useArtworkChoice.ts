@@ -35,7 +35,7 @@ export function useCustomArtwork(item:ItemDto,kind:ArtworkKind,enabled=true){
     window.addEventListener('frame:custom-artwork',change);return()=>{active=false;window.removeEventListener('frame:custom-artwork',change);};
   },[key,enabled]);
   useEffect(()=>{if(!enabled||value.key!==key||!value.blob){setObject(undefined);return;}const url=URL.createObjectURL(value.blob);setObject({key,url});return()=>URL.revokeObjectURL(url);},[key,value,enabled]);
-  return {url:enabled&&object?.key===key?object.url:undefined,save:async(blob?:Blob)=>{
-    await writeCustomArtwork(key,blob);setValue({key,blob});window.dispatchEvent(new CustomEvent('frame:custom-artwork',{detail:{key,blob}}));
+  return {url:enabled&&object?.key===key?object.url:undefined,save:async(blob?:Blob,current:()=>boolean=()=>true)=>{
+    await writeCustomArtwork(key,blob);if(!current())return;setValue({key,blob});window.dispatchEvent(new CustomEvent('frame:custom-artwork',{detail:{key,blob}}));
   }};
 }

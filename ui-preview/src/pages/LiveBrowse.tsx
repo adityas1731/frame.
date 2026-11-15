@@ -1,3 +1,6 @@
+import {Link} from 'react-router';
+import {useLibraries} from '../app/useLibraries';
+import {libraryHeading} from '../app/libraryNavigation';
 import {useCollectionLayout} from '../state/collectionLayout';
 import {CollectionLayoutButton,collectionGridClass} from '../components/CollectionLayout';
 import {GenreMenu} from '../components/TitleTags';
@@ -20,7 +23,7 @@ import type {BrowseQuery, ItemDto} from '../jellyfin/types';
 import {EmptyState} from '../components/Primitives';
 import type {CollectionMode} from './Library';
 import {RequestStatus, Pagination, LiveCard} from './LiveShared';
-const titles = { movies: 'Movies', shows: 'TV Shows', library: 'Your Library', search: 'Search', favorites: 'Favorites', watchlist: 'Watchlist' };
+const titles = { movies: 'Your Library', shows: 'Your Library', library: 'Your Library', search: 'Search', favorites: 'Favorites', watchlist: 'Watchlist' };
 export function LiveBrowse({ mode }: { mode: CollectionMode }) {
   const { client, session } = useConnection();
   const {client:online}=useOnline();
@@ -29,6 +32,8 @@ export function LiveBrowse({ mode }: { mode: CollectionMode }) {
   const raw = params.get('q') ?? ''; const search = useDebounced(raw);
   const rawStart = Number(params.get('start') ?? 0); const start = Number.isInteger(rawStart) && rawStart >= 0 ? rawStart : 0;
   const parentId = params.get('library') || undefined;
+  const libraries=useLibraries();
+  const pageTitle=['movies','shows','library'].includes(mode)?libraryHeading(libraries.items,mode,parentId):titles[mode];
   const sort = (['SortName', 'DateCreated', 'CommunityRating'].includes(params.get('sort') ?? '') ? params.get('sort') : 'SortName') as BrowseQuery['sort'];
   const change = (values: Record<string, string>) => setParams(previous => { const next = new URLSearchParams(previous); for (const [k,v] of Object.entries(values)) v ? next.set(k,v) : next.delete(k); return next; }, { replace: true });
   const query: BrowseQuery = { kind: mode === 'movies' ? 'Movie' : mode === 'shows' ? 'Series' : undefined, search, parentId, start, limit:pageSize, sort, genre: params.get('genre') || undefined, favorite: mode === 'favorites' ? true : undefined };
@@ -42,16 +47,16 @@ export function LiveBrowse({ mode }: { mode: CollectionMode }) {
   useEffect(()=>{if(mode!=='favorites')return;const update=(event:Event)=>{if((event as CustomEvent).detail?.client===client)favoritesRefresh.current();};window.addEventListener('frame:favorite-updated',update);return()=>window.removeEventListener('frame:favorite-updated',update);},[mode,client]);
   const items = data.data?.Items ?? [];
   const bannerEnabled=['movies','shows'].includes(mode)&&!raw&&!start&&!query.genre;
-  const {items:bannerItems,loading:bannerLoading}=useServerFeaturedState(mode==='movies'?'movies':'shows',bannerEnabled,false);
+  const {items:bannerItems,loading:bannerLoading}=useServerFeaturedState(mode==='movies'?'movies':'shows',bannerEnabled,false,parentId);
   const hasSpotlight=bannerEnabled&&bannerItems.length>0;
   const showHero=hasSpotlight||bannerLoading;
   return <div className={`content-page collection-page ${showHero?'collection-page-hero':''}`}>
 {!showHero&&<header className={`page-heading ${customLayout?'collection-page-heading':''}`}>
-<h1>{headingCase(query.genre ? query.genre : mode==='movies'?'Movies':mode==='shows'?'TV Shows':mode==='library'?'Your Library':mode==='search'?'Search':titles[mode])}</h1>
+<h1>{query.genre?headingCase(query.genre):pageTitle}</h1>
 {customLayout&&<CollectionLayoutButton layout={layout} onPageSizeChange={()=>change({start:''})}/>}
 </header>}
     {bannerLoading&&!hasSpotlight&&<HeroPlaceholder collection/>}
-    {hasSpotlight&&<CollectionSpotlight page={mode==='movies'?'movies':'shows'} pageTitle={mode==='movies'?'Movies':'TV Shows'} stories={bannerItems.map(item=>({item,id:item.Id,title:itemTitle(item),description:item.Overview??undefined,meta:[item.ProductionYear,item.Type==='Series'?undefined:runtime(item),displayGenres(item.Genres)[0]].filter(Boolean).join(' · '),to:`/item/${encodeURIComponent(item.Id)}`,artwork:<FeaturedServerArtwork item={item}/>}))}/>}
+    {hasSpotlight&&<CollectionSpotlight page={mode==='movies'?'movies':'shows'} pageTitle={pageTitle} stories={bannerItems.map(item=>({item,id:item.Id,title:itemTitle(item),description:item.Overview??undefined,meta:[item.ProductionYear,item.Type==='Series'?undefined:runtime(item),displayGenres(item.Genres)[0]].filter(Boolean).join(' · '),to:`/item/${encodeURIComponent(item.Id)}`,artwork:<FeaturedServerArtwork item={item}/>}))}/>}
     <form className="search-stage" role="search" onSubmit={e => e.preventDefault()}>
 <Search size={24}/>
 <input aria-label="Search Jellyfin titles" placeholder="Find a movie or series…" value={raw} onChange={e => change({ q: e.target.value, start: '' })}/>
@@ -64,7 +69,7 @@ export function LiveBrowse({ mode }: { mode: CollectionMode }) {
 <option value="DateCreated">Recently added</option>
 <option value="CommunityRating">Highest rated</option>
 </Select>
-{mode==='library'&&<div className="library-genre-filter"><GenreMenu/></div>}
+{mode==='library'&&<div className="library-genre-filter">{!parentId&&<nav className="music-library-links" aria-label="Music libraries">{libraries.links.filter(link=>link.mode==='music').map(link=><Link key={link.id} className="button secondary" to={link.to}>{link.title}</Link>)}</nav>}<GenreMenu/></div>}
 </div>
 <RequestStatus {...data} stale={!!data.data}/>
     {raw !== search && <p className="request-status" role="status">Waiting for your search…</p>}

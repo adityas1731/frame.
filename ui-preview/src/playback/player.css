@@ -337,3 +337,61 @@ html:has(.frame-player){scrollbar-gutter:auto;overflow:hidden}
 .frame-player .caption-style-controls>.caption-custom-font{grid-column:1/-1;min-width:0}
 .frame-player .caption-custom-font input{width:100%;min-width:0;box-sizing:border-box;padding:11px 14px;border:1px solid #ffffff24;border-radius:12px;background:#ffffff06;color:inherit;font:inherit}
 .frame-player .caption-custom-font .installed-font-status,.frame-player .caption-custom-font small{display:block;margin-top:8px;color:#aeb6c3;font:12px/1.5 system-ui}
+
+/* Tab labels must fit custom fonts and text scaling without widening the panel. */
+.frame-player .player-track-panel>nav{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));min-width:0;gap:4px}
+.frame-player .player-track-panel>nav>button{flex:1 1 auto;min-width:0;max-width:100%;white-space:normal;overflow-wrap:anywhere;line-height:1.5;padding-block:10px}
+.frame-player .player-track-panel>nav>button svg{flex-shrink:0}
+
+/* Subtitle controls need readable UI copy independently of the caption preview. */
+.frame-player .player-track-panel[data-tab='captions']{
+ width:min(460px,calc(100vw - 24px));padding:26px;
+ background:#202328;color:#f3f4f6;backdrop-filter:none;
+ container:subtitle-panel / inline-size;
+}
+.frame-player .player-track-panel[data-tab='captions'] :is(p,small,.installed-font-status){
+ color:#c3cad3;font:14px/1.65 var(--font-body,system-ui);letter-spacing:normal;
+}
+.frame-player .player-track-panel[data-tab='captions'] :is(h3,.playback-field,.caption-style-controls>label,.caption-custom-font .studio-field>span:first-child){
+ color:#f3f4f6;font-size:15px;line-height:1.55;font-weight:500;
+}
+.frame-player .player-track-panel[data-tab='captions'] h3{font-size:16px;margin-bottom:16px}
+.frame-player .player-track-panel[data-tab='captions']>nav>button{color:#c7cdd6;font-size:15px;min-height:44px}
+.frame-player .player-track-panel[data-tab='captions']>nav>button[aria-pressed=true]{color:#fff;background:#ffffff14}
+.frame-player .player-track-panel[data-tab='captions'] .custom-subtitle-controls{margin:24px 0;padding:22px 0 0}
+.frame-player .player-track-panel[data-tab='captions'] .custom-subtitle-controls>small{margin:12px 0 0;color:#c3cad3;font-size:14px}
+.frame-player .player-track-panel[data-tab='captions'] .custom-subtitle-actions{gap:10px}
+.frame-player .player-track-panel[data-tab='captions'] .custom-subtitle-actions button{font-size:14px;line-height:1.5;min-height:42px;padding:10px 14px;border-color:#ffffff29;background:#ffffff08}
+.frame-player .player-track-panel[data-tab='captions'] :is(.caption-synchronization,.caption-appearance){margin-top:26px;padding-top:24px;border-color:#ffffff1c}
+.frame-player .player-track-panel[data-tab='captions'] .subtitle-delay-reset{font-size:14px;color:#d4dae2;min-height:34px}
+.frame-player .player-track-panel[data-tab='captions'] .subtitle-delay-actions button{font-size:14px;color:#f3f4f6;border-color:#ffffff25}
+.frame-player .player-track-panel[data-tab='captions'] .subtitle-delay-actions input{font-size:16px;background:#ffffff08;color:#fff;border-color:#ffffff38}
+.frame-player .player-track-panel[data-tab='captions'] .subtitle-delay-unit{font-size:14px;color:#c3cad3}
+.frame-player .player-track-panel[data-tab='captions'] .caption-style-controls{gap:22px 16px}
+.frame-player .player-track-panel[data-tab='captions'] .caption-style-controls .frame-select,
+:root[data-layout='cinema'] body .frame-player .player-track-panel[data-tab='captions'] .playback-field>button.frame-select[role=combobox]{
+ font-size:15px;line-height:1.5;min-height:46px;border:1px solid #ffffff2b;background:#ffffff08;color:#f3f4f6;
+}
+.frame-player .player-track-panel[data-tab='captions'] .caption-sample{margin:0;padding:24px 14px;min-height:84px;box-sizing:border-box}
+.frame-player .player-track-panel[data-tab='captions'] .caption-custom-font input{font-size:15px;line-height:1.5;min-height:46px;background:#ffffff08;border-color:#ffffff2b;color:#f3f4f6}
+.frame-player .player-track-panel[data-tab='captions'] .caption-custom-font .studio-field{gap:10px;margin:0}
+.frame-player .player-track-panel[data-tab='captions'] .caption-custom-font :is(small,.installed-font-status){margin-top:0;font-size:14px;line-height:1.65;color:#c3cad3}
+.frame-player .player-track-panel[data-tab='captions'] .saved-font-heading{font-size:14px;line-height:1.5;color:#d4dae2;margin:4px 0 10px}
+.frame-player .player-track-panel[data-tab='captions'] .saved-fonts{grid-template-columns:1fr;gap:10px}
+.frame-player .player-track-panel[data-tab='captions'] .saved-font-row{border-color:#ffffff29;background:#ffffff03}
+.frame-player .player-track-panel[data-tab='captions'] .saved-font-choice{font-size:15px;line-height:1.6;color:#f3f4f6;padding:11px 14px}
+.frame-player .player-track-panel[data-tab='captions'] .saved-font-choice[aria-pressed=true]{background:#ffffff0e}
+.frame-player .player-track-panel[data-tab='captions'] .saved-font-remove{width:40px;height:40px;color:#d4dae2}
+.frame-player .player-track-panel[data-tab='captions'] .font-save-name{font-size:15px;font-weight:500}
+.frame-player .player-track-panel[data-tab='captions'] .font-save-name:disabled{background:#ffffff0b;border-color:#ffffff24;color:#c3cad3;opacity:1}
+.frame-player .player-track-panel[data-tab='captions'] .caption-appearance output{font-size:14px;color:#d4dae2}
+@container subtitle-panel (max-width:370px){
+ .frame-player .player-track-panel[data-tab='captions'] .caption-style-controls>label{grid-column:1/-1}
+ .frame-player .player-track-panel[data-tab='captions'] .subtitle-delay-actions{grid-template-columns:42px 42px minmax(60px,1fr) 42px 42px;gap:6px}
+}
+@media(max-width:700px){.frame-player .player-track-panel[data-tab='captions']{padding:22px}}
+
+:root[data-layout='cinema'] body .frame-player .player-track-panel[data-tab='captions'] .caption-style-controls button.frame-select[role=combobox]{width:100%;max-width:100%}
+.frame-player .player-track-panel[data-tab='captions'] .caption-synchronization header h3{min-width:0;overflow-wrap:anywhere}
+
+.frame-player .player-track-panel[data-tab='captions'] .installed-font-manager button.font-save-name:is(:hover,:focus-visible){background:transparent;color:var(--accent);border-color:var(--accent);filter:none;opacity:1}

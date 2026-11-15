@@ -27,3 +27,4 @@ import './styles/title-tags.css';
 
 import './styles/collection-layout.css';
 import './styles/navigation-motion.css';
+import './styles/text-metrics.css';

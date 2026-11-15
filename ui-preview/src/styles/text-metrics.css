@@ -1,0 +1,25 @@
+/* Custom fonts need room for both accents and descenders. Hero titles are not
+   excerpt text: let them wrap rather than cutting their final line of glyphs. */
+:root[data-layout='cinema'] body :is(.cinema-copy h2,.collection-spotlight-copy h2,.detail-heading h1){
+ line-height:1.22;padding-block:.12em;overflow:visible;overflow-wrap:anywhere;
+}
+:root[data-layout='cinema'] body .cinema-copy h2{display:block;-webkit-line-clamp:unset}
+.cinema-copy .hero-meta{max-height:none;line-height:1.6}
+
+/* Retain horizontal ellipses while giving each clipped text box its own
+   font-relative vertical space. Do not change artwork or subtitle cue sizing. */
+body :is(.card-title,.card-meta>span:first-child,.featured-title-copy strong,.continue-detail,.continue-context,.saved-font-choice span,.frame-select>span,.player-title h1){
+ line-height:1.5;padding-block:.1em;
+}
+:root[data-layout='cinema'] body .widget-continue .continue-info{grid-template-rows:auto auto auto auto}
+body .saved-font-choice{align-content:center}
+
+/* Named Jellyfin libraries can be longer or more numerous than two presets. */
+:root[data-layout='cinema'] body .cinema-top-links{overflow-x:auto;scrollbar-width:none;flex-shrink:1}
+.cinema-top-links::-webkit-scrollbar{display:none}
+:root[data-layout='cinema'] body .cinema-top-links a{flex-shrink:0;white-space:nowrap;line-height:1.5}
+
+/* Wrapping controls retain their own text space with wide installed families. */
+body :is(.detail-tabs,.segmented){flex-wrap:wrap;min-width:0}
+body .detail-tabs>button{min-width:0;line-height:1.5;white-space:normal;overflow-wrap:anywhere}
+body :is(.setting-control,.studio-fields,.settings-grid)>*{min-width:0}

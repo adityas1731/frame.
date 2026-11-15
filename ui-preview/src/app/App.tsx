@@ -1,3 +1,6 @@
+import {MusicProvider} from '../music/context';
+import {MusicPlayer} from '../music/MusicPlayer';
+import {MusicPage} from '../music/MusicPage';
 import {TitleTagsProvider} from '../state/TitleTags';
 import {TagsPage} from '../pages/Tags';
 import {WatchlistProvider} from '../state/WatchlistContext';
@@ -29,11 +32,12 @@ function PersonRoute() { return <div className="content-page"><EmptyState title=
 export function App() {
   return <PreviewProvider>
 <ConnectionProvider><WatchlistProvider><StudioProvider><TitleTagsProvider><OnlineProvider><HashRouter>
-<ConnectionGate><Routes>
+<MusicProvider><ConnectionGate><Routes>
 {import.meta.env.DEV&&PlayerPreviewRoute&&<Route path="player-preview" element={<Suspense fallback={<p>Loading preview…</p>}><PlayerPreviewRoute/></Suspense>}/>}
 <Route path="play/:itemId" element={<PlayerRoute/>}/>
 <Route element={<Shell/>}>
 <Route index element={<HomeRoute/>}/>
+<Route path="music" element={<MusicPage/>}/><Route path="music/artist/:artistId" element={<MusicPage/>}/><Route path="music/album/:albumId" element={<MusicPage/>}/><Route path="music/playlist/:playlistId" element={<MusicPage/>}/>
 <Route path="movies" element={<LibraryRoute key="movies" mode="movies"/>}/>
 <Route path="shows" element={<LibraryRoute key="shows" mode="shows"/>}/>
 <Route path="library" element={<LibraryRoute key="library" mode="library"/>}/>
@@ -52,7 +56,7 @@ export function App() {
 </EmptyState>
 </div>}/>
 </Route>
-</Routes></ConnectionGate>
+</Routes><MusicPlayer/></ConnectionGate></MusicProvider>
 </HashRouter></OnlineProvider></TitleTagsProvider></StudioProvider></WatchlistProvider></ConnectionProvider>
 </PreviewProvider>;
 }

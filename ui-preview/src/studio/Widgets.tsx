@@ -1,3 +1,7 @@
+import {MusicTrackCard} from '../music/MusicTrackCard';
+import {MusicWidget} from '../music/MusicWidget';
+import {useLibraries} from '../app/useLibraries';
+import {libraryHeading} from '../app/libraryNavigation';
 import {TitleLink} from '../components/TitleLink';
 import {fitWidgetCards} from './cardLayout';
 import {useTitleTags} from '../state/TitleTags';
@@ -29,7 +33,7 @@ import {episodeLabel,episodeTitle} from '../providers/metadata';
 import type {ItemDto} from '../jellyfin/types';
 import {usePreview} from '../state/PreviewContext';
 export const widgetRegistry={continue:{label:'Continue Watching',description:'Unfinished titles, ordered by recent playback.'},categories:{label:'Category Grid',description:'Shortcuts to your libraries.'},recent:{label:'Recently Added',description:'Titles ordered by the date added to Jellyfin.'},custom:{label:'Custom Section',description:'Choose titles, a genre or a saved list.'}};
-export function HomeWidgets(){const {config}=useStudio();const {session}=useConnection();return <div className="home-widgets">{config.widgets.filter(w=>w.visible).map(w=>w.kind==='categories'?<Categories key={w.id} widget={w}/>:session?<ServerWidget key={w.id} widget={w}/>:<MockWidget key={w.id} widget={w}/>)}{!config.widgets.some(w=>w.visible)&&<div className="empty-home"><h2>No Home Sections</h2><Link className="button primary" to="/settings?studio=home">Add home sections</Link></div>}</div>;}
+export function HomeWidgets(){const {config}=useStudio();const {session}=useConnection();const libraries=useLibraries();const musicLibraries=new Set(libraries.links.filter(l=>l.mode==='music').map(l=>l.id));return <div className="home-widgets">{config.widgets.filter(w=>w.visible).map(w=>w.kind==='categories'?<Categories key={w.id} widget={w}/>:session&&w.kind!=='continue'&&w.source!=='nextup'&&(w.media==='Audio'||musicLibraries.has(w.library))?<MusicWidget key={w.id} widget={w}/>:session?<ServerWidget key={w.id} widget={w}/>:<MockWidget key={w.id} widget={w}/>)}{!config.widgets.some(w=>w.visible)&&<div className="empty-home"><h2>No Home Sections</h2><Link className="button primary" to="/settings?studio=home">Add home sections</Link></div>}</div>;}
 function WidgetFrame({widget:w,children,loading,error,retry,count}:{widget:Widget;children:ReactNode;loading?:boolean;error?:string;retry?:()=>void;count:number}){
  const row=useRef<HTMLDivElement>(null);const probe=useRef<HTMLSpanElement>(null);const [layout,setLayout]=useState({columns:1,width:0});
  useLayoutEffect(()=>{
@@ -64,7 +68,8 @@ function ServerWidget({widget:w}:{widget:Widget}){
  const items=(result.data??[]).filter((v,i,all)=>all.findIndex(other=>other.Id===v.Id)===i).slice(0,w.limit);
  return <WidgetFrame widget={w} loading={result.loading} error={result.error} retry={result.retry} count={items.length}>{items.map(item=><ServerWidgetCard key={item.Id} item={item} widget={w}/>)}</WidgetFrame>;
 }
-function ServerWidgetCard({item,widget:w}:{item:ItemDto;widget:Widget}){
+function ServerWidgetCard({item,widget}:{item:ItemDto;widget:Widget}){return item.Type==='Audio'?<MusicTrackCard item={item}/>:<VideoWidgetCard item={item} widget={widget}/>;}
+function VideoWidgetCard({item,widget:w}:{item:ItemDto;widget:Widget}){
  const {client,session}=useConnection();const wantsStill=w.art==='episode'&&item.Type==='Episode';
  const full=useRemote(`widget-episode-art:${wantsStill?item.Id:''}`,()=>wantsStill&&client&&session?client.item(session.user.Id,item.Id):Promise.resolve(item),false);
  const {preferences}=usePreview();const details=useEpisodeDetails(wantsStill?(full.data??item):item);const display=details.item??item;const isEpisode=item.Type==='Episode';const position=item.UserData?.PlaybackPositionTicks??0;const progress=position>0&&item.RunTimeTicks?Math.max(0,Math.min(100,position/item.RunTimeTicks*100)):undefined;
@@ -102,7 +107,7 @@ export function Categories({widget:w,editor=false}:{widget:Widget;editor?:boolea
 }
 function ServerCategories({widget:w,editor}:{widget:Widget;editor:boolean}){
  const {client,session}=useConnection();const data=useRemote('category-discovery',async()=>{const [libraries,counts,items]=await Promise.all([client!.libraries(session!.user.Id),client!.counts(session!.user.Id),client!.items(session!.user.Id,{sort:'DateCreated',limit:40})]);return{libraries: libraries.Items,counts,items:items.Items};});
- const supported=[...(data.data?.counts.movies?['movies']:[]),...(data.data?.counts.series?['shows']:[]),...(data.data?.libraries.map(l=>l.Id)??[])];
+ const supported=[...(data.data?.libraries.some(l=>l.CollectionType==='movies')?['movies']:[]),...(data.data?.libraries.some(l=>l.CollectionType==='tvshows')?['shows']:[]),...(data.data?.libraries.map(l=>l.Id)??[])];
  return <><CategoryGrid widget={w} editor={editor} items={data.data?.items??[]} supported={supported}/>{data.error&&<p className="widget-message">Categories could not be discovered. <button className="text-link" onClick={data.retry}>Try again</button></p>}</>;
 }
 function CategoryGrid({widget:w,editor,items,supported}:{widget:Widget;editor:boolean;items:ItemDto[];supported:string[]}){
@@ -111,14 +116,16 @@ function CategoryGrid({widget:w,editor,items,supported}:{widget:Widget;editor:bo
  return <section className="media-section category-widget" data-widget-id={w.id}><header className="section-heading"><h2>{headingCase(w.title)}</h2>{!editor&&<Link className="text-link" to="/settings?studio=home">Customize</Link>}</header><div className={`category-grid category-mode-${layout.presentation} category-${layout.shape} category-labels-${layout.labels}`} style={{'--category-columns':layout.columns,'--category-count':Math.max(1,categories.length),'--category-height':`${layout.height}px`,'--category-radius':`${layout.radius}px`} as CSSProperties}>{categories.map(c=><CategoryTile key={c.id} category={c} items={items}/>)}</div>{!categories.length&&<p className="widget-message">No supported categories are visible. Edit the grid in Settings.</p>}</section>;
 }
 export function CategoryTile({category:c,items=[],preview=false}:{category:Category;items?:ItemDto[];preview?:boolean}){
+ const libraries=useLibraries();
+ const categoryTitle=c.target==='genre'?c.title:libraryHeading(libraries.items,c.target,c.target==='library'?c.value:undefined);
  const {scope,config}=useStudio();const minimal=config.categoryLayout.presentation==='minimal';const {session,client}=useConnection();const [upload,setUpload]=useState<string>();
  useEffect(()=>{let active=true;let url:string|undefined;setUpload(undefined);if(c.image==='upload'&&c.imageKey?.startsWith(scope+':'))void thumbnail(c.imageKey).then(blob=>{if(blob&&active){url=URL.createObjectURL(blob);setUpload(url);}},()=>{});return()=>{active=false;if(url)URL.revokeObjectURL(url);};},[c.image,c.imageKey,scope]);
  const chosen=useRemote(`category-art:${c.id}:${c.image}:${c.itemId}`,()=>!minimal&&c.image==='library'&&session&&c.itemId?client!.item(session.user.Id,c.itemId):Promise.resolve(undefined));
  const automatic=items.find(i=>c.target==='movies'?i.Type==='Movie':c.target==='shows'?i.Type==='Series':c.target==='genre'?i.Genres?.includes(c.value):true);
  const item=chosen.data??automatic;const mock=c.image==='library'?media.find(m=>m.id===c.itemId):media.find(m=>c.target==='movies'?m.kind==='movie':c.target==='shows'?m.kind==='show':m.genres.includes(c.value))??media[c.placeholder%media.length];
  const art=c.image==='upload'&&upload?<img src={upload} alt=""/>:c.image!=='builtin'&&c.image!=='upload'?(session?item?<ServerArtwork item={item} backdrop={!!imageSource(item,true)} fit={imageSource(item,true)?'cover':'contain'}/>:null:mock?<Artwork item={mock}/>:null):null;
- const content=<>{minimal?<span className="category-symbol">{c.target==='shows'?<Tv size={23}/>:<Film size={23}/>}</span>:<div className={`category-art placeholder-${c.placeholder}`} style={{'--category-zoom':c.zoom,'--category-x':`${c.x}%`,'--category-y':`${c.y}%`} as CSSProperties}>{art??<><div className="category-orbit"/><Film size={38}/></>}</div>}<span className="category-title">{c.title}</span><Layers className="category-arrow" size={19}/></>;
- const target=c.target==='movies'?'/movies':c.target==='shows'?'/shows':`/library?${new URLSearchParams({[c.target==='genre'?'genre':'library']:c.value})}`;
+ const content=<>{minimal?<span className="category-symbol">{c.target==='shows'?<Tv size={23}/>:<Film size={23}/>}</span>:<div className={`category-art placeholder-${c.placeholder}`} style={{'--category-zoom':c.zoom,'--category-x':`${c.x}%`,'--category-y':`${c.y}%`} as CSSProperties}>{art??<><div className="category-orbit"/><Film size={38}/></>}</div>}<span className="category-title">{session?categoryTitle:c.title}</span><Layers className="category-arrow" size={19}/></>;
+ const target=c.target==='library'&&libraries.links.find(link=>link.id===c.value)?.mode==='music'?libraries.links.find(link=>link.id===c.value)!.to:c.target==='movies'?'/movies':c.target==='shows'?'/shows':`/library?${new URLSearchParams({[c.target==='genre'?'genre':'library']:c.value})}`;
  return preview?<div className={`category-tile ${minimal?'category-minimal':'category-artwork'}`}>{content}</div>:<Link className={`category-tile ${minimal?'category-minimal':'category-artwork'}`} to={target}>{content}</Link>;
 }
 

@@ -73,3 +73,13 @@ test('explicit Regular face names resolve the corresponding PostScript name with
   assert.equal(await installedFontAvailable('Saira ExtraCondensed Regular'),true);
  }finally{if(previousFace)globalThis.FontFace=previousFace;else delete globalThis.FontFace;}
 });
+
+test('a stalled local font probe settles as unknown and can be retried',async()=>{
+ const previousFace=globalThis.FontFace;
+ try{
+  globalThis.FontFace=class{load(){return new Promise(()=>{});}};
+  assert.equal(await installedFontAvailable('Stalled Font Probe'),null);
+  globalThis.FontFace=class{async load(){return this;}};
+  assert.equal(await installedFontAvailable('Stalled Font Probe'),true);
+ }finally{if(previousFace)globalThis.FontFace=previousFace;else delete globalThis.FontFace;}
+});

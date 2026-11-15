@@ -4,7 +4,8 @@ import type { Fetcher, Session } from './types';
 export interface ConnectionState {
   client: JellyfinClient | null; session: Session | null; saved: Session | null; message: string;
   createClient: (url: string, transport?: Fetcher, deviceId?: string) => JellyfinClient;
-  activate: (client: JellyfinClient, session: Session, remember: boolean) => void;
+  activate: (client: JellyfinClient, session: Session, remember: boolean) => boolean;
+  cancelClient:(client:JellyfinClient)=>void;
   disconnect: () => Promise<void>; forget: () => void;
   restoring:boolean; remembered:boolean; rememberCurrent:(remember:boolean)=>void; resumeSaved:()=>Promise<void>;
   unavailable:boolean; reportUnavailable:(source:JellyfinClient)=>void;

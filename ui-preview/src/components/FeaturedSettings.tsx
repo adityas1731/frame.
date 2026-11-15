@@ -1,3 +1,5 @@
+import {useLibraries} from '../app/useLibraries';
+import {libraryHeading} from '../app/libraryNavigation';
 import {SettingsSection,Field} from './SettingsSection';
 import {useEffect,useRef,useState} from 'react';
 import {useFeaturedSettings} from '../state/featured';
@@ -10,6 +12,7 @@ import {ServerArtwork} from './ServerArtwork';
 import {Artwork} from './Artwork';
 import {Home,Film,Tv,Star,EyeOff} from 'lucide-react';
 export function FeaturedSettings(){
+ const libraries=useLibraries();
  const {client,session}=useConnection();const {rules,update}=useFeaturedSettings();const [page,setPage]=useState<FeaturedPage>('discover');const [query,setQuery]=useState('');const term=useDebounced(query);const [start,setStart]=useState(0);const rule=rules[page];
  const data=useRemote(`banner-editor:${session?.server.Id}:${session?.user.Id}:${page}:${term}:${start}`,()=>client&&session?client.items(session.user.Id,{kind:page==='movies'?'Movie':page==='shows'?'Series':undefined,search:term,start,limit:40,sort:'SortName'}):Promise.resolve({Items:[],TotalRecordCount:0}),false);
  const mock=media.filter(item=>(page==='discover'||item.kind===(page==='movies'?'movie':'show'))&&item.title.toLowerCase().includes(term.toLowerCase()));
@@ -29,7 +32,7 @@ export function FeaturedSettings(){
   update(page,{...rule,...(list==='selected'&&!removing?{custom:true}:{}),[list]:removing?rule[list].filter(value=>value!==id):[...rule[list],id],[other]:rule[other].filter(value=>value!==id)});
  };
  return <SettingsSection id="featured-settings-heading" title="Featured Banners" aside={<button className="text-link" onClick={()=>update(page,defaultFeatured())}>Reset This Banner</button>}><div className="studio-panel featured-settings">
- <div className="featured-page-grid" role="group" aria-label="Banner Page">{([{id:'discover',label:'frame.',detail:'Home',Icon:Home},{id:'movies',label:'Movies',detail:'Movie Banners',Icon:Film},{id:'shows',label:'TV Shows',detail:'Series Banners',Icon:Tv}] as const).map(({id,label,detail,Icon})=><button key={id} aria-pressed={page===id} onClick={()=>{setPage(id);setStart(0);setQuery('');}}><Icon size={22}/><span><strong>{label}</strong><small>{detail}</small></span><span className="featured-page-count">{rules[id].custom?`${rules[id].selected.length} Featured`:'Library Mix'}</span></button>)}</div>
+ <div className="featured-page-grid" role="group" aria-label="Banner Page">{([{id:'discover',label:'frame.',detail:'Home',Icon:Home},{id:'movies',label:libraryHeading(libraries.items,'movies'),detail:'Movie Banners',Icon:Film},{id:'shows',label:libraryHeading(libraries.items,'shows'),detail:'Series Banners',Icon:Tv}] as const).map(({id,label,detail,Icon})=><button key={id} aria-pressed={page===id} onClick={()=>{setPage(id);setStart(0);setQuery('');}}><Icon size={22}/><span><strong>{label}</strong><small>{detail}</small></span><span className="featured-page-count">{rules[id].custom?`${rules[id].selected.length} Featured`:'Library Mix'}</span></button>)}</div>
  <div className="featured-count-control"><Field label={`Banner Titles (${rule.count})`} hint="Show up to this many titles, depending on availability."><input aria-label="Banner Title Count" type="range" min={2} max={20} value={rule.count} onChange={event=>update(page,{...rule,count:Number(event.target.value)})}/><span className="banner-count-ticks"><span>2</span><span>20</span></span></Field></div>
  <div className="studio-toggle-row"><div><strong>Shuffle Banners</strong><p>Randomizes the order when you open the page.</p></div><Toggle label="Shuffle banners" checked={rule.shuffle} onChange={shuffle=>update(page,{...rule,shuffle})}/></div>
  <div className="studio-toggle-row"><div><strong>Choose Featured Titles</strong><p>{rule.custom?`${rule.selected.length} selected · ${rule.hidden.length} hidden`:'Uses all available titles except those you hide. Turn on to choose specific titles.'}</p></div><Toggle label="Choose featured titles" checked={rule.custom} onChange={custom=>update(page,{...rule,custom})}/></div>

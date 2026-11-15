@@ -1,5 +1,5 @@
 import {streamingRequirement} from '../platform/browser';
-import { useEffect, useRef, useState, type FormEvent } from 'react';
+import { useLayoutEffect, useRef, useState, type FormEvent } from 'react';
 import { Link, useNavigate } from 'react-router';
 import { Server, ShieldCheck } from 'lucide-react';
 import { useConnection, errorMessage } from '../jellyfin/useConnection';
@@ -14,20 +14,20 @@ export function Connect() {
   const [url, setUrl] = useState(()=>hosting(document.baseURI).serverUrl??''); const [http, setHttp] = useState(false); const [consent, setConsent] = useState(false);
   const [username, setUsername] = useState(''); const [password, setPassword] = useState(''); const [remember, setRemember] = useState(true);
   const [server, setServer] = useState<ServerInfo | null>(null); const [error, setError] = useState(''); const [busy, setBusy] = useState(false);
-  const pending = useRef<JellyfinClient | null>(null);
-  useEffect(() => () => { pending.current?.dispose(); }, []);
-  function resetProbe() { pending.current?.dispose(); pending.current = null; setServer(null); }
+  const pending = useRef<JellyfinClient | null>(null);const generation=useRef(0);
+  useLayoutEffect(() => () => {generation.current++;if(pending.current)connection.cancelClient(pending.current);pending.current=null;}, []);
+  function resetProbe() {generation.current++;if(pending.current)connection.cancelClient(pending.current);pending.current = null;setServer(null);}
   async function probe(event: FormEvent) {
     event.preventDefault(); if (!consent || busy) return;
-    setBusy(true); setError(''); resetProbe();
-    try { const base = normalizeServerUrl(url, http, location.protocol); setUrl(base); const client = connection.createClient(base); pending.current = client; setServer(await client.probe()); }
-    catch (e) { setError(errorMessage(e)); } finally { setBusy(false); }
+    setBusy(true); setError(''); resetProbe();const turn=generation.current;
+    try { const base = normalizeServerUrl(url, http, location.protocol); setUrl(base); const client = connection.createClient(base); pending.current = client; const server=await client.probe();if(turn===generation.current&&pending.current===client)setServer(server); }
+    catch (e) {if(turn===generation.current)setError(errorMessage(e));}finally{if(turn===generation.current)setBusy(false);}
   }
   async function signIn(event: FormEvent) {
     event.preventDefault(); if (!server || !pending.current || busy) return;
-    setBusy(true); setError('');
-    try { const client = pending.current; const session = await client.authenticate(server, username, password); pending.current = null; connection.activate(client, session, remember); navigate('/'); }
-    catch (e) { setError(errorMessage(e)); } finally { setPassword(''); setBusy(false); }
+    setBusy(true); setError('');const turn=generation.current;const client=pending.current;
+    try { const session = await client.authenticate(server, username, password); if(turn!==generation.current||pending.current!==client)return;if(connection.activate(client,session,remember)){pending.current=null;navigate('/');} }
+    catch(e){if(turn===generation.current)setError(errorMessage(e));}finally{if(turn===generation.current){setPassword('');setBusy(false);}}
   }
   async function resume() { await connection.resumeSaved(); }
   return <div className="content-page connection-page">

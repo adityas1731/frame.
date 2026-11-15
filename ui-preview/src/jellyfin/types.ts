@@ -2,6 +2,7 @@ export interface ServerInfo { Id: string; ServerName?: string; Version: string }
 export interface User { Id: string; Name?: string; Policy?: { IsAdministrator?: boolean; IsDisabled?: boolean; EnableSubtitleManagement?: boolean } }
 export interface Session { server: ServerInfo; baseUrl: string; user: User; token: string; deviceId: string; created: number }
 export interface ItemDto {
+  Album?:string;AlbumId?:string;AlbumPrimaryImageTag?:string;Artists?:string[];ArtistItems?:{Id:string;Name?:string}[];AlbumArtists?:{Id:string;Name?:string}[];MediaType?:string;PlaylistItemId?:string;
   Id: string; Name?: string; OriginalTitle?: string; Type?: string; CollectionType?: string; Overview?: string | null; Taglines?: string[];
   DisplayOrder?: string; SeriesName?: string; DateCreated?: string; ProductionYear?: number; PremiereDate?: string; CommunityRating?: number; CriticRating?: number; OfficialRating?: string;
   RunTimeTicks?: number; PrimaryImageAspectRatio?:number; Genres?: string[]; People?: { Id?: string; Name?: string; Type?: string; Role?: string; PrimaryImageTag?: string; OnlineImage?: string }[];
@@ -12,9 +13,11 @@ export interface ItemDto {
   ParentLogoItemId?: string; ParentLogoImageTag?: string;
 }
 export interface Page<T> { Items: T[]; TotalRecordCount: number; StartIndex?: number }
-export interface BrowseQuery { ids?: string[]; kind?: 'Movie' | 'Series' | 'Season' | 'Episode'; parentId?: string; search?: string; start?: number; limit?: number; sort?: 'Random' | 'SortName' | 'DateCreated' | 'CommunityRating' | 'DatePlayed' | 'PremiereDate'; year?: string; maxPremiereDate?: string; minRating?: number; played?: boolean; genre?: string; resume?: boolean; favorite?: boolean }
+export interface BrowseQuery { ids?: string[]; kind?: 'Movie' | 'Series' | 'Season' | 'Episode' | 'Audio'; parentId?: string; search?: string; start?: number; limit?: number; sort?: 'Random' | 'SortName' | 'DateCreated' | 'CommunityRating' | 'DatePlayed' | 'PremiereDate'; year?: string; maxPremiereDate?: string; minRating?: number; played?: boolean; genre?: string; resume?: boolean; favorite?: boolean }
 export type Fetcher = (input: string, init?: RequestInit) => Promise<Response>;
 
 
 
 
+
+export interface MusicQuery {kind:'Audio'|'MusicAlbum'|'MusicArtist'|'Playlist';favorite?:boolean;parentId?:string;artistId?:string;search?:string;start?:number;limit?:number;sort?:'SortName'|'DateCreated'|'AlbumArtist,Album,ParentIndexNumber,IndexNumber'|'ParentIndexNumber,IndexNumber,SortName'}

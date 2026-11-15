@@ -39,7 +39,7 @@ self.addEventListener('fetch',event=>{
   if(!['GET','HEAD'].includes(event.request.method))return new Response('Media read only',{status:405});
   let grant,controller;let release=()=>{};
   try{
-   const match=local.pathname.slice(mediaPrefix.length).match(/^([^/]+)\/([^/]+)\/stream\.(?:mp4|webm|m4v|m3u8|ts|m4s|vtt)$/);if(!match||local.search)return new Response('Invalid media request',{status:400});
+   const match=local.pathname.slice(mediaPrefix.length).match(/^([^/]+)\/([^/]+)\/stream\.(?:mp4|webm|m4v|m3u8|ts|m4s|vtt|mp3|m4a|aac|flac|ogg|opus|wav)$/);if(!match||local.search)return new Response('Invalid media request',{status:400});
    const nonce=decodeURIComponent(match[1]);grant=await grantFor(event.clientId,nonce);if(!grant)return new Response('Player connection unavailable',{status:403});
    const relative=cleanMediaUrl(decodeURIComponent(match[2]),grant.baseUrl,grant.itemId);
    const target=grant.requestBase.replace(/\/+$/,'')+'/'+relative;const canonical=grant.baseUrl.replace(/\/+$/,'')+'/'+relative;

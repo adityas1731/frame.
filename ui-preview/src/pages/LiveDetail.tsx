@@ -1,3 +1,5 @@
+import {useLibraries} from '../app/useLibraries';
+import {ancestorLibrary} from '../app/libraryNavigation';
 import {TitleTagsEditor, TitleTagLinks} from '../components/TitleTags';
 import {formatMinutes} from '../platform/duration';
 import {WatchlistToggle} from '../components/WatchlistToggle';
@@ -15,7 +17,7 @@ import {DetailArtwork} from '../components/DetailArtwork';
 import {titlePreview} from '../components/titleNavigation';
 import {DetailFacts} from '../components/DetailFacts';
 import {useState} from 'react';
-import {Link, useParams} from 'react-router';
+import {Link, Navigate, useParams} from 'react-router';
 import {ArrowLeft, ChevronRight, Info} from 'lucide-react';
 import {useConnection} from '../jellyfin/useConnection';
 import {useRemote} from '../jellyfin/hooks';
@@ -25,6 +27,9 @@ import {RequestStatus, Score} from './LiveShared';
 import {LiveEpisodes} from './LiveEpisodes';
 export function LiveDetail() {
   const { itemId = '' } = useParams(); const { client, session } = useConnection();
+  const libraries=useLibraries();
+  const ancestors=useRemote(`detail-library:${session?.server.Id}:${session?.user.Id}:${itemId}`,()=>client!.ancestors(session!.user.Id,itemId),false);
+  const backLibrary=ancestorLibrary(libraries.items,ancestors.data??[]);
   const data = useRemote(`detail:${itemId}`, () => client!.item(session!.user.Id, itemId));
   const [info, setInfo] = useState(false); const [episodes, setEpisodes] = useState(false);
   const [identifying,setIdentifying]=useState(false);
@@ -35,14 +40,15 @@ export function LiveDetail() {
 <RequestStatus {...data}/>
 </div>;
 
+  if(['MusicAlbum','MusicArtist','Playlist','Audio'].includes(item.Type??''))return <Navigate replace to={item.Type==='Audio'?`/music?tab=songs&q=${encodeURIComponent(item.Name??'')}`:`/music/${item.Type==='MusicArtist'?'artist':item.Type==='Playlist'?'playlist':'album'}/${encodeURIComponent(item.Id)}`}/>;
   const credits = directorCredits(detail!);
   const director = credits.names.map(name => personName(name)).join(', ');
   const coverage = itemCoverage(detail!, true);
   return <div className="detail-page">
 <section className="detail-hero">
 <DetailArtwork item={detail!} online={rich.online}/><div className="detail-shade"/>
-<Link className="detail-back" to={item.Type === 'Series' ? '/shows' : '/movies'}>
-<ArrowLeft size={16}/> {item.Type === 'Series' ? 'TV Shows' : 'Movies'}</Link>
+<Link className="detail-back" to={backLibrary?.to??'/library'}>
+<ArrowLeft size={16}/> {backLibrary?.title??'Your Library'}</Link>
 <div className="detail-heading">
 
 <h1>{itemTitle(item)}</h1>

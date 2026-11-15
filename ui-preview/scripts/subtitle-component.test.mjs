@@ -63,7 +63,7 @@ test('Direct Play quality keeps bitrate in its selector only',()=>{
 test('subtitle custom font exposes its own saved family and uses the registered local alias',()=>{
  const r=render([], -1,{},'captions',{font:'custom',customFont:'Agrave Pro'});
  assert.match(r.html,/Installed Font Family/);assert.match(r.html,/value="Agrave Pro"/);
- assert.match(r.html,/font-family:&quot;frame-local-/);assert.match(r.html,/Leave blank to use the custom font from Appearance/);
+ assert.match(r.html,/font-family:&quot;frame-local-/);assert.doesNotMatch(r.html,/Leave blank to use the custom font from Appearance/);
 });
 
 test('quality status reports cropped decoded 4K and does not equate requested quality with actual output',()=>{

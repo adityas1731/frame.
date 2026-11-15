@@ -1,7 +1,7 @@
 {
-  "version": "1.0.7.0",
+  "version": "1.0.8.0",
   "jellyfinAbi": "12.3.0.0",
   "node": "24.18.0",
   "dotnet": "10.0.403",
-  "releaseNotes": "Enable automatic updates for Frame through Jellyfin’s Update Plugins scheduled task. Restart Jellyfin after an update to load the new version. Internal Diagnostics builds remain excluded from automatic updates."
+  "releaseNotes": "Add native Jellyfin music libraries, song browsing and a persistent audio player with queue, shuffle and repeat. Improve subtitles, installed fonts, library naming, custom tags and layout controls. Harden playback, artwork-saving and connection transitions."
 }

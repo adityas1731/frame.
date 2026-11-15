@@ -1,40 +1,44 @@
+import {ConnectionMachine,connectionUnavailable,type ConnectionMemory} from './connectionMachine';
 import {randomId} from '../platform/browser.ts';
-import { useEffect, useRef, useState, type ReactNode } from 'react';
+import { useEffect, useState, useSyncExternalStore, type ReactNode } from 'react';
 import { JellyfinClient, JellyfinError, normalizeServerUrl } from './client';
 import { loadSession, saveSession, loadRememberedSession, saveRememberedSession } from './session';
 import type { Fetcher, Session } from './types';
 import { ConnectionContext as Context } from './context';
 const tabStore = { getItem:(k:string)=>sessionStorage.getItem(k),setItem:(k:string,v:string)=>sessionStorage.setItem(k,v),removeItem:(k:string)=>sessionStorage.removeItem(k) };
 const deviceStore = { getItem:(k:string)=>localStorage.getItem(k),setItem:(k:string,v:string)=>localStorage.setItem(k,v),removeItem:(k:string)=>localStorage.removeItem(k) };
-function initialSession(){const device=loadRememberedSession(deviceStore);return device??((session)=>session?{session,allowHttp:session.baseUrl.startsWith('http:')}:null)(loadSession(tabStore));}
-export function ConnectionProvider({children}:{children:ReactNode}) {
- const [initial]=useState(initialSession);
- const [active,setActive]=useState<{client:JellyfinClient;session:Session}|null>(null);const activeRef=useRef(active);
- const [saved,setSaved]=useState<Session|null>(initial?.session??null);
- const [remembered,setRemembered]=useState(!!initial);
- const [restoring,setRestoring]=useState(!!initial);
- const [message,setMessage]=useState('');
- const [unavailable,setUnavailable]=useState(false);
- const generation=useRef(0);const pending=useRef<JellyfinClient|null>(null);
- function forget(){saveRememberedSession(deviceStore,null);saveSession(tabStore,null);setSaved(null);setRemembered(false);setUnavailable(false);}
- function createClient(url:string,transport?:Fetcher,deviceId:string=randomId()) {
+type SessionStorage=import('./session').SessionStore;
+type Stores={tab:SessionStorage;device:SessionStorage};
+function initialSession(stores:Stores){const device=loadRememberedSession(stores.device);return device??((session)=>session?{session,allowHttp:session.baseUrl.startsWith('http:')}:null)(loadSession(stores.tab));}
+export function ConnectionProvider({children,storage}:{children:ReactNode;storage?:Stores}) {
+ const [stores]=useState(()=>storage??{tab:tabStore,device:deviceStore});
+ const [initial]=useState(()=>initialSession(stores));
+ const [machine]=useState(()=>new ConnectionMachine<JellyfinClient,Session>(initial?.session??null));
+ const state=useSyncExternalStore(machine.subscribe,machine.snapshot);
+ const {active,saved,remembered,message}=state;
+ const restoring=state.phase==='restoring',unavailable=connectionUnavailable(state);
+ function clearSaved(){saveRememberedSession(stores.device,null);saveSession(stores.tab,null);}
+ function forget(){clearSaved();machine.forget();}
+ function rawClient(url:string,transport?:Fetcher,deviceId:string=randomId()) {
   const client=new JellyfinClient(url,deviceId,transport,()=>{
-   if(activeRef.current?.client===client){client.dispose();activeRef.current=null;setActive(null);forget();setMessage('Your Jellyfin session expired or was revoked. Sign in again from Server connection.');}
+   if(machine.expire(client,'Your Jellyfin session expired or was revoked. Sign in again from Server connection.'))clearSaved();
   });return client;
  }
- function persist(session:Session,remember:boolean){
-  saveSession(tabStore,null);
-  if(remember&&saveRememberedSession(deviceStore,session)){setSaved(session);setRemembered(true);}
-  else {forget();if(remember)setMessage('Device storage is unavailable. You are signed in for this page session only.');}
+ function createClient(url:string,transport?:Fetcher,deviceId?:string){
+  const operation=machine.begin('connecting');const client=rawClient(url,transport,deviceId);machine.attach(operation,client);return client;
+ }
+ function persist(session:Session,remember:boolean):ConnectionMemory<Session>{
+  saveSession(stores.tab,null);
+  if(remember&&saveRememberedSession(stores.device,session))return {saved:session,remembered:true,message:''};
+  clearSaved();return {saved:null,remembered:false,message:remember?'Device storage is unavailable. You are signed in for this page session only.':''};
  }
  function activate(client:JellyfinClient,session:Session,remember:boolean){
-  const old=activeRef.current;if(old&&old.client!==client)old.client.dispose();
-  const next={client,session};activeRef.current=next;setActive(next);setUnavailable(false);setMessage('');persist(session,remember);
+  if(!machine.owns(client)){client.dispose();return false;}
+  return machine.accept(client,session,persist(session,remember));
  }
- function rememberCurrent(remember:boolean){const current=activeRef.current;if(current){setMessage('');persist(current.session,remember);}}
+ function rememberCurrent(remember:boolean){const current=machine.snapshot().active;if(current)machine.remember(persist(current.session,remember));}
  async function restore(session:Session,allowHttp:boolean,remember=true){
-  const turn=++generation.current;pending.current?.dispose();setRestoring(true);setMessage('');
-  let client:JellyfinClient|undefined;
+  const operation=machine.begin('restoring');
   try {
    const base=normalizeServerUrl(session.baseUrl,allowHttp,location.protocol);
    let transport:Fetcher|undefined;
@@ -42,29 +46,26 @@ export function ConnectionProvider({children}:{children:ReactNode}) {
     if(!import.meta.env.DEV)throw new JellyfinError(409,'Simulated sessions are unavailable in production.');
     transport=(await import('./fixtures')).createFixtureFetch(session.server.Version);
    }
-   if(turn!==generation.current)return;
-   client=createClient(base,transport,session.deviceId);pending.current=client;client.restore(session);
+   if(!machine.current(operation))return;
+   const client=rawClient(base,transport,session.deviceId);if(!machine.attach(operation,client))return;client.restore(session);
    const user=await client.validateSession(session);
-   if(turn!==generation.current){client.dispose();return;}
-   pending.current=null;activate(client,{...session,user},remember);client=undefined;
+   if(machine.current(operation))activate(client,{...session,user},remember);
   }catch(error){
-   client?.dispose();
-   if(turn!==generation.current)return;
-   if(error instanceof JellyfinError&&[401,403,409].includes(error.status)){activeRef.current?.client.dispose();activeRef.current=null;setActive(null);setUnavailable(false);forget();setMessage('The saved Jellyfin session is no longer valid. Sign in again.');}
-   else {setUnavailable(true);setMessage('Jellyfin is unavailable. Your saved sign-in is kept. Reconnect when your server is back.');}
-  }finally{if(turn===generation.current){pending.current=null;setRestoring(false);}}
+   const invalid=error instanceof JellyfinError&&[401,403,409].includes(error.status);
+   if(machine.reject(operation,invalid,invalid?'The saved Jellyfin session is no longer valid. Sign in again.':'Jellyfin is unavailable. Your saved sign-in is kept. Reconnect when your server is back.')&&invalid)clearSaved();
+  }
  }
- async function resumeSaved(){const current=activeRef.current?.session??saved;if(current)await restore(current,current.baseUrl.startsWith('http:'),activeRef.current?remembered:true);}
- function reportUnavailable(source:JellyfinClient){if(activeRef.current?.client===source)setUnavailable(true);}
- function showSignIn(){generation.current++;pending.current?.dispose();pending.current=null;setRestoring(false);setMessage('');window.location.hash='/connect';}
+ async function resumeSaved(){const current=machine.snapshot();const session=current.active?.session??current.saved;if(session)await restore(session,session.baseUrl.startsWith('http:'),current.active?current.remembered:true);}
+ function reportUnavailable(source:JellyfinClient){machine.unavailable(source);}
+ function cancelClient(client:JellyfinClient){machine.cancel(client);}
+ function showSignIn(){machine.cancel();window.location.hash='/connect';}
  useEffect(()=>{
   if(initial)void restore(initial.session,initial.allowHttp);
-  return()=>{generation.current++;pending.current?.dispose();pending.current=null;};
+  return()=>{machine.cancel();};
  },[]);
  async function disconnect(){
-  generation.current++;pending.current?.dispose();pending.current=null;setRestoring(false);
-  const old=activeRef.current;activeRef.current=null;setActive(null);setUnavailable(false);forget();setMessage('');
-  if(old)try{await old.client.logout();}catch{setMessage('Signed out locally. Server logout could not be confirmed; revoke the session in Jellyfin if necessary.');}
+  const {old,operation}=machine.signOut();clearSaved();
+  if(old)try{await old.client.logout();}catch{machine.logoutFailed(operation,'Signed out locally. Server logout could not be confirmed; revoke the session in Jellyfin if necessary.');}
  }
- return <Context value={{client:active?.client??null,session:active?.session??null,saved,message,restoring,remembered,rememberCurrent,resumeSaved,createClient,activate,disconnect,forget,unavailable,reportUnavailable}}>{restoring?<main className="session-restoring" aria-busy="true"><h1>Connecting To Jellyfin</h1><p role="status">Checking your saved sign-in…</p><button className="button secondary" onClick={showSignIn}>Connection Settings</button></main>:children}</Context>;
+ return <Context value={{client:active?.client??null,session:active?.session??null,saved,message,restoring,remembered,rememberCurrent,resumeSaved,createClient,activate,cancelClient,disconnect,forget,unavailable,reportUnavailable}}>{restoring?<main className="session-restoring" aria-busy="true"><h1>Connecting To Jellyfin</h1><p role="status">Checking your saved sign-in…</p><button className="button secondary" onClick={showSignIn}>Connection Settings</button></main>:children}</Context>;
 }

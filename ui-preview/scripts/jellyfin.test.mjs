@@ -175,3 +175,11 @@ test('default browser fetch is called without a JellyfinClient receiver', async 
   try { assert.equal((await client.probe()).Id, fixtureServer.Id); assert.equal(calls, 1); }
   finally { client.dispose(); globalThis.fetch = originalFetch; }
 });
+
+test('library ancestry is user scoped and rejects malformed server responses',async()=>{
+ let requested;let result=[{Id:'series',Name:'A show'},{Id:'view',Name:'My Shows',Type:'CollectionFolder'}];
+ const client=new JellyfinClient(base,'test-device',async url=>{requested=new URL(url);return json(result);});
+ const ancestors=await client.ancestors('user & one','item/one');
+ assert.equal(requested.pathname,'/Items/item%2Fone/Ancestors');assert.equal(requested.searchParams.get('userId'),'user & one');assert.equal(ancestors[1].Name,'My Shows');
+ client.invalidate();result={Items:[]};await assert.rejects(client.ancestors('user & one','item/one'),/invalid library ancestry/);client.dispose();
+});

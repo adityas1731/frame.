@@ -64,3 +64,5 @@ body .tag-title-search>label>input{width:100%;min-width:0;border:0;background:tr
 .tag-title-search>label:focus-within{outline:2px solid var(--accent);outline-offset:3px}
 body .tag-title-search>label>input:focus-visible{outline:none;box-shadow:none}
 @media(max-width:600px){.tag-manager-editor>header{align-items:flex-start}.tag-manager-tabs{gap:8px}.tag-manager-tabs>button{padding:9px 12px;font-size:.9rem}.tag-manager-actions{gap:6px}.tag-manager-actions button{padding:9px 11px}.tag-assigned-list,.tag-title-search ul{max-height:290px}}
+
+.overview-layout .synopsis>.title-tag-list{justify-content:flex-end;margin-top:16px}

@@ -60,7 +60,7 @@ public sealed class FrameMediaController(IServer server) : ControllerBase
         if (!user.RootElement.TryGetProperty("Policy", out var policy) || !policy.TryGetProperty("EnableMediaPlayback", out var playback) || playback.ValueKind != JsonValueKind.True) return null;
         using var media = await ProtectedJson(baseUrl + "/Items/" + item.ToString("N") + "?userId=" + owner.ToString("N"), authorization, cancellation).ConfigureAwait(false);
         if (media is null) return null;
-        if (!media.RootElement.TryGetProperty("Type", out var type) || type.GetString() is not ("Movie" or "Episode")) return null;
+        if (!media.RootElement.TryGetProperty("Type", out var type) || type.GetString() is not ("Movie" or "Episode" or "Audio")) return null;
         if (media.RootElement.TryGetProperty("PlayAccess", out var access) && access.GetString() != "Full") return null;
         return owner.ToString("N");
     }

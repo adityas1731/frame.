@@ -11,8 +11,10 @@ export function sameMediaItem(left,right){
  return left.toLowerCase()===right.toLowerCase()||canonical(left)!==null&&canonical(left)===canonical(right);
 }
 export function mediaPathAllowed(path,itemId){
- const parts=path.split('/').filter(Boolean);if(parts[0]?.toLowerCase()!=='videos'||!sameMediaItem(parts[1],itemId))return false;
+ const parts=path.split('/').filter(Boolean);if(!sameMediaItem(parts[1],itemId))return false;
  const tail=parts.slice(2).join('/');
+ if(parts[0]?.toLowerCase()==='audio')return /^stream\.(mp3|m4a|aac|flac|ogg|opus|wav|webm|mp4)$/i.test(tail);
+ if(parts[0]?.toLowerCase()!=='videos')return false;
  return /^(stream\.(mp4|webm|m4v)|master\.m3u8|main\.m3u8)$/i.test(tail)||/^hls1\/[a-z0-9_-]+\/-?\d+\.(ts|mp4|m4s)$/i.test(tail)||/^hls\/[a-z0-9_-]+\/(stream\.m3u8|\d+\.(ts|mp4|m4s))$/i.test(tail)||/^[a-z0-9_-]+\/subtitles\/\d+\/(?:\d+\/)?stream\.vtt$/i.test(tail);
 }
 export function cleanMediaUrl(raw,base,itemId){
@@ -28,7 +30,7 @@ export function cleanMediaUrl(raw,base,itemId){
  if(/\.(m3u8|ts|m4s)$/i.test(relative)||relative.includes('/hls1/'))for(const key of [...url.searchParams.keys()])if(/^startTimeTicks$/i.test(key))url.searchParams.delete(key);
  return relative+(url.searchParams.size?'?'+url.searchParams.toString():'');
 }
-export function gatewayPath(nonce,relative,scope="/"){if(!scope.startsWith("/")||scope.includes("//")||!scope.endsWith("/")||/[?#\\]/.test(scope)||scope.split("/").some(p=>p==="."||p===".."))throw Error("Invalid gateway scope");const extension=relative.split('?')[0].split('.').at(-1);if(!/^(mp4|webm|m4v|m3u8|ts|m4s|vtt)$/.test(extension))throw Error('Invalid media type');return scope+'__frame_media/'+encodeURIComponent(nonce)+'/'+encodeURIComponent(relative)+'/stream.'+extension;}
+export function gatewayPath(nonce,relative,scope="/"){if(!scope.startsWith("/")||scope.includes("//")||!scope.endsWith("/")||/[?#\\]/.test(scope)||scope.split("/").some(p=>p==="."||p===".."))throw Error("Invalid gateway scope");const extension=relative.split('?')[0].split('.').at(-1);if(!/^(mp4|webm|m4v|m3u8|ts|m4s|vtt|mp3|m4a|aac|flac|ogg|opus|wav)$/.test(extension))throw Error('Invalid media type');return scope+'__frame_media/'+encodeURIComponent(nonce)+'/'+encodeURIComponent(relative)+'/stream.'+extension;}
 export function rewritePlaylist(text,upstream,base,itemId,nonce,scope="/"){
  if(!text.trimStart().startsWith('#EXTM3U'))throw Error('Invalid HLS playlist');
  const rewrite=raw=>gatewayPath(nonce,cleanMediaUrl(raw.startsWith('/')&&!raw.startsWith('//')?raw:new URL(raw,upstream).href,base,itemId),scope);

@@ -18,7 +18,7 @@ import {media} from '../data/media';
 
 /** Discover all scoped genres, rather than guessing from the first page of titles. */
 
-export function GenreField({value,onChange,library='',mediaType='all'}:{value:string;onChange:(value:string)=>void;library?:string;mediaType?:'all'|'Movie'|'Series'}){
+export function GenreField({value,onChange,library='',mediaType='all'}:{value:string;onChange:(value:string)=>void;library?:string;mediaType?:'all'|'Movie'|'Series'|'Audio'}){
 
  const {session,client}=useConnection();const {names:customTags}=useTitleTags();
 

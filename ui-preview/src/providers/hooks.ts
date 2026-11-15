@@ -7,6 +7,7 @@ import type { ItemDto } from '../jellyfin/types';
 import { useOnline } from './context';
 import { mergeMetadata, ProviderError, type OnlineMetadata } from './metadata';
 export function useRichItem(item?:ItemDto, parent?:ItemDto, enabled=true) {
+  enabled=enabled&&!['Audio','MusicAlbum','MusicArtist','Playlist'].includes(item?.Type??'');
   const {client}=useOnline();const key=JSON.stringify([item?.Id,item?.Name,item?.Type,item?.ProviderIds,item?.ParentIndexNumber,item?.IndexNumber,item?.IndexNumberEnd,parent?.ProviderIds,parent?.DisplayOrder,item?.PremiereDate,item?.Overview,item?.ProductionYear,item?.ImageTags,item?.BackdropImageTags]);
   const [state,setState]=useState<{client:typeof client;key:string;online?:OnlineMetadata|null;error?:string}>({client:null,key:''});
   const [recovery,setRecovery]=useState(0);const artworkRevision=useArtworkRevision(item?.Id);

@@ -1,5 +1,15 @@
 # Changelog
 
+## 1.0.8.0
+
+- Discover music libraries using Jellyfin permissions and library names. Browse standalone songs, including files without artist or album metadata.
+- Add a persistent audio player, queue, Play Next, album/playlist playback, seeking, volume, shuffle and repeat. Coordinate audio and video playback and use the authenticated media relay.
+- Keep the music landing page focused on its song list; place music shortcuts beside Genres. Keep the player stable during seeking and buffering.
+- Use Jellyfin library names in navigation, headings, shortcuts and back links. Retain empty accessible libraries and hide unavailable ones.
+- Improve subtitle text contrast, font controls and responsive spacing. Align Save Font hover styles across settings and keep saved font names reusable.
+- Prevent clipped text, reduce layout-editor background blur and right-align custom title tags beneath the overview.
+- Make connection, artwork saving and playback presentation transitions explicit, rejecting stale completions and duplicate operations.
+
 ## 1.0.7.0
 
 - Enable Jellyfin's normal automatic plugin updates for public Frame packages. Updates download and install through the Update Plugins scheduled task; restarting Jellyfin activates them.

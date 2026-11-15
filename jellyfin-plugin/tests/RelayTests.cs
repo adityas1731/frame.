@@ -30,6 +30,15 @@ static class RelayTests
             var rejected = false; try { RelayPolicy.Resource(raw, item); } catch (FormatException) { rejected = true; }
             check(rejected, "relay rejects unsupported/unscoped media path");
         }
+        var audioRoot = "Audio/" + item.ToString("N");
+        check(RelayPolicy.Resource(audioRoot + "/stream.mp3?api_key=secret&static=false&StartTimeTicks=150000000", item) == audioRoot + "/stream.mp3?static=false&StartTimeTicks=150000000", "audio relay strips broad credentials and retains progressive seek offset");
+        foreach (var extension in new[] { "mp3", "m4a", "aac", "flac", "ogg", "opus", "wav", "webm", "mp4" })
+            check(RelayPolicy.Resource(audioRoot + "/stream." + extension, item).StartsWith(audioRoot), "audio relay allows scoped " + extension);
+        foreach (var raw in new[] { "Audio/" + other.ToString("N") + "/stream.mp3", audioRoot + "/file.mp3", audioRoot + "/master.m3u8", audioRoot + "/../stream.mp3", audioRoot + "/stream.exe", audioRoot + "/stream.mp3#secret" })
+        {
+            var rejected = false; try { RelayPolicy.Resource(raw, item); } catch (FormatException) { rejected = true; }
+            check(rejected, "audio relay rejects unsupported or unscoped resource");
+        }
         var upstream = new Uri("http://127.0.0.1:18096/jellyfin/" + root + "/master.m3u8");
         var text = RelayPolicy.Playlist("#EXTM3U\n#EXT-X-MAP:URI=\"hls1/main/-1.mp4?api_key=secret\"\nhls1/main/0.ts?ApiKey=secret\n", upstream, "http://127.0.0.1:18096/jellyfin", "/jellyfin", "grant", item);
         check(!text.Contains("secret") && text.Split('\n')[2].StartsWith("/jellyfin/Frame/Media/grant/stream?resource="), "relay rewrites HLS map and segment under BaseUrl without credentials");

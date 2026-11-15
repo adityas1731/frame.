@@ -1,0 +1,49 @@
+import {useEffect,useRef,useState} from 'react';import {Link,useParams,useSearchParams} from 'react-router';
+import {ArrowLeft,Play,Plus,ListPlus,Music2} from 'lucide-react';
+import {useConnection} from '../jellyfin/useConnection';import {useRemote,useDebounced} from '../jellyfin/hooks';
+import type {ItemDto,MusicQuery} from '../jellyfin/types';
+import {useLibraries} from '../app/useLibraries';import {libraryHeading} from '../app/libraryNavigation';
+import {Select} from '../components/Select';import {RequestStatus,Pagination} from '../pages/LiveShared';
+import {formatPlaybackClock} from '../platform/duration';import {useMusic} from './context';import {MusicArtwork} from './MusicArtwork';
+import {collectMusic,musicTitle,musicArtist,musicDestination} from './presentation';
+const empty={Items:[] as ItemDto[],TotalRecordCount:0};
+export function MusicPage(){
+ const {client,session}=useConnection();const libraries=useLibraries();const {controller}=useMusic();const {artistId,albumId,playlistId}=useParams();const [params,setParams]=useSearchParams();
+ const library=params.get('library')||undefined;const detail=artistId??albumId??playlistId;
+ const available=libraries.links.some(link=>link.mode==='music'&&(!library||link.id===library));
+ const search=useDebounced(params.get('q')??'');const start=Math.max(0,Number(params.get('start'))||0);
+ const sort=params.get('sort')==='DateCreated'?'DateCreated':params.get('sort')==='AlbumArtist,Album,ParentIndexNumber,IndexNumber'?'AlbumArtist,Album,ParentIndexNumber,IndexNumber':'SortName';
+ const albumsStart=Math.max(0,Number(params.get('albumStart'))||0);
+ const scope=JSON.stringify([session?.server.Id,session?.user.Id,library,detail,search,start,albumsStart,sort,available]);
+ const entity=useRemote(`music-detail:${session?.server.Id}:${session?.user.Id}:${detail}:${available}`,()=>client&&session&&detail&&available?client.item(session.user.Id,detail):Promise.resolve(undefined),false);
+ const query:MusicQuery={kind:'Audio',parentId:albumId??library,artistId,search,start,limit:40,sort:albumId?'ParentIndexNumber,IndexNumber,SortName':sort};
+ const load=(offset:number)=>playlistId?client!.playlistTracks(session!.user.Id,playlistId,offset):client!.musicItems(session!.user.Id,{...query,start:offset,limit:100});
+ const data=useRemote(`music-browse:${scope}`,()=>client&&session&&available?(playlistId?client.playlistTracks(session.user.Id,playlistId,start):client.musicItems(session.user.Id,query)):Promise.resolve(empty),false);
+ const albums=useRemote(`music-artist-albums:${scope}`,()=>artistId&&available&&client&&session?client.musicItems(session.user.Id,{kind:'MusicAlbum',artistId,parentId:library,start:albumsStart,limit:40,search}):Promise.resolve(empty),false);
+ const [working,setWorking]=useState(false),[message,setMessage]=useState('');const context=useRef(scope);context.current=scope;const operation=useRef(0);
+ useEffect(()=>{setWorking(false);setMessage('');return()=>{operation.current++;};},[scope]);
+ async function run(action:()=>Promise<unknown>,success=''){const turn=++operation.current,key=scope;setWorking(true);setMessage('');try{await action();if(turn===operation.current&&context.current===key)setMessage(success);}catch(error){if(turn===operation.current&&context.current===key)setMessage(error instanceof Error?error.message:'Music could not be loaded.');}finally{if(turn===operation.current&&context.current===key)setWorking(false);}}
+ function change(values:Record<string,string>){setParams(previous=>{const next=new URLSearchParams(previous);for(const [key,value]of Object.entries(values))value?next.set(key,value):next.delete(key);return next;});}
+ const title=detail&&entity.data?musicTitle(entity.data):libraryHeading(libraries.items,'music',library);
+ const collectionTracks=(item:ItemDto)=>collectMusic(offset=>item.Type==='Playlist'?client!.playlistTracks(session!.user.Id,item.Id,offset):client!.musicItems(session!.user.Id,{kind:'Audio',parentId:item.Id,start:offset,limit:100,sort:'ParentIndexNumber,IndexNumber,SortName'}));
+ const playlistMatches=(item:ItemDto)=>!playlistId||!search||[musicTitle(item),musicArtist(item),item.Album].filter(Boolean).join(' ').toLowerCase().includes(search.toLowerCase());
+ const playCollection=(item?:ItemDto)=>run(async()=>{if(!controller)return;if(item)await controller.playCollection(()=>collectionTracks(item));else await controller.playCollection(async()=>(await collectMusic(load)).filter(playlistMatches));});
+ if(!libraries.loading&&!available)return <div className="content-page"><h1>Your Library</h1><p>This music library is unavailable to your account.</p><Link to="/library" className="button secondary">Back to your library</Link></div>;
+ if(detail&&entity.error)return <div className="content-page"><RequestStatus {...entity}/><Link to={`/music${library?'?library='+encodeURIComponent(library):''}`}>Back to music libraries</Link></div>;
+ if(detail&&entity.data&&!['MusicArtist','MusicAlbum','Playlist'].includes(entity.data.Type??''))return <div className="content-page"><p>This item is not a music artist, album or playlist.</p></div>;
+ const rows=data.data?.Items.filter(item=>item.Type==='Audio'&&playlistMatches(item))??[];
+ return <div className="content-page music-page">
+ {detail&&<Link className="music-back" to={`/music?${new URLSearchParams({...(library?{library}:{}),tab:artistId?'artists':playlistId?'playlists':'albums'})}`}><ArrowLeft size={16}/>{libraryHeading(libraries.items,'music',library)}</Link>}
+ <header className={`page-heading music-heading ${detail?'music-heading-detail':''}`}>{detail&&entity.data&&<MusicArtwork item={entity.data}/>}<div><h1>{title}</h1>{detail&&entity.data&&entity.data.Type!=='MusicArtist'&&<p>{entity.data.Type==='Playlist'?'Playlist':musicArtist(entity.data)}{entity.data.ProductionYear?` · ${entity.data.ProductionYear}`:''}</p>}</div>{<div className="music-collection-actions"><button className="button primary" disabled={working||data.loading||!rows.length} onClick={()=>void playCollection()}><Play size={17}/>{working?'Loading tracks…':'Play all'}</button><button className="button secondary" disabled={working||!rows.length} onClick={()=>void run(async()=>{const tracks=(await collectMusic(load)).filter(playlistMatches);if(!controller?.enqueue(tracks))throw Error('No tracks were added. Check the queue limit or choose another collection.');},'Added to queue.')}><ListPlus size={17}/>Add to queue</button></div>}</header>
+ <div className="music-toolbar"><input aria-label="Search music" placeholder={artistId?'Search this artist…':playlistId?'Search this page…':albumId?'Search this album…':'Search this library…'} value={params.get('q')??''} onChange={e=>change({q:e.target.value,start:''})}/>{!albumId&&!playlistId&&<Select aria-label="Sort music" value={sort} onValueChange={value=>change({sort:value,start:''})}><option value="SortName">Title A–Z</option><option value="DateCreated">Recently added</option><option value="AlbumArtist,Album,ParentIndexNumber,IndexNumber">Artist & album</option></Select>}</div>
+ {message&&<p role="status">{message}</p>}<RequestStatus {...data}/>
+ {artistId&&<section className="music-artist-albums"><h2>Albums</h2><RequestStatus {...albums}/><div className="music-grid">{albums.data?.Items.map(item=><MusicCard key={item.Id} item={item} library={library} play={()=>void playCollection(item)} busy={working}/>)}</div>{!albums.loading&&!albums.data?.Items.length&&<p className="muted">No albums returned. Available tracks appear below.</p>}<Pagination start={albumsStart} count={albums.data?.Items.length??0} total={albums.data?.TotalRecordCount??0} loading={albums.loading} change={n=>change({albumStart:String(n)})}/><h2>Songs</h2></section>}
+ <SongList items={rows}/>
+ {!data.loading&&!data.error&&!rows.length&&<div className="music-empty"><Music2 size={28}/><h2>{search?'No matches':'No songs yet'}</h2><p>{search?'Try another search.':'Jellyfin has not returned any audio tracks for this view.'}</p></div>}
+ <Pagination start={start} count={data.data?.Items.length??0} total={data.data?.TotalRecordCount??0} loading={data.loading} change={n=>change({start:String(n)})} pageSize={playlistId?100:40}/>
+ </div>;
+}
+export function MusicCard({item,library,play,busy}:{item:ItemDto;library?:string;play:()=>void;busy:boolean}){return <article className="music-card"><Link to={musicDestination(item,library)}><MusicArtwork item={item}/><strong>{musicTitle(item)}</strong><small>{item.Type==='MusicArtist'?'Artist':item.Type==='Playlist'?'Playlist':musicArtist(item)}</small></Link>{item.Type!=='MusicArtist'&&<button className="icon-button" aria-label={`Play ${musicTitle(item)}`} disabled={busy} onClick={play}><Play size={18}/></button>}</article>;}
+export function SongList({items}:{items:ItemDto[]}){
+ const {controller,state}=useMusic();return <div className="music-song-list" role="list" aria-label="Songs">{items.map((item,index)=>{const title=musicTitle(item),current=state.entries.find(entry=>entry.key===state.current)?.item.Id===item.Id;return <article role="listitem" className={`music-song ${current?'current':''}`} key={item.PlaylistItemId??`${item.Id}:${index}`}><MusicArtwork item={item}/><button className="music-song-title" aria-label={`Play ${title}`} onClick={()=>{if(current)controller?.toggle();else void controller?.play([item]);}}><strong>{title}</strong><small>{musicArtist(item)}</small></button><span className="music-song-album" title={item.Album}>{item.Album||'No album information'}</span><time>{item.RunTimeTicks?formatPlaybackClock(item.RunTimeTicks/10000000):'—'}</time><button className="icon-button" aria-label={`Play ${title} next`} onClick={()=>controller?.enqueue([item],true)}><ListPlus size={18}/></button><button className="icon-button" aria-label={`Add ${title} to queue`} onClick={()=>controller?.enqueue([item])}><Plus size={18}/></button></article>;})}</div>;
+}

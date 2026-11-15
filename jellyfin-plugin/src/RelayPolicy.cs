@@ -5,7 +5,7 @@ using Microsoft.AspNetCore.WebUtilities;
 
 namespace Frame.Jellyfin;
 
-/// <summary>Only the active item's video resources; never a general URL proxy.</summary>
+/// <summary>Only the active item's audio/video resources; never a general URL proxy.</summary>
 public static partial class RelayPolicy
 {
     // VOD playlists repeat the stream options on every segment. Feature-length
@@ -23,7 +23,11 @@ public static partial class RelayPolicy
         if (raw.Length > 8000 || raw.Contains('#') || raw.Contains('\\') || raw.Any(char.IsControl)) throw new FormatException();
         var parts = raw.Split('?', 2);
         var path = parts[0].Split('/');
-        if (path.Length < 3 || !path[0].Equals("Videos", StringComparison.OrdinalIgnoreCase) || !Guid.TryParse(path[1], out var candidate) || candidate != item || !Tail().IsMatch(string.Join('/', path.Skip(2)))) throw new FormatException();
+        if (path.Length < 3 || !Guid.TryParse(path[1], out var candidate) || candidate != item) throw new FormatException();
+        var tail = string.Join('/', path.Skip(2));
+        var video = path[0].Equals("Videos", StringComparison.OrdinalIgnoreCase) && Tail().IsMatch(tail);
+        var audio = path[0].Equals("Audio", StringComparison.OrdinalIgnoreCase) && Regex.IsMatch(tail, @"^stream\.(mp3|m4a|aac|flac|ogg|opus|wav|webm|mp4)$", RegexOptions.IgnoreCase | RegexOptions.CultureInvariant);
+        if (!video && !audio) throw new FormatException();
         var query = QueryHelpers.ParseQuery(parts.Length == 2 ? parts[1] : "");
         var playlist = parts[0].EndsWith(".m3u8", StringComparison.OrdinalIgnoreCase) || parts[0].Contains("/hls", StringComparison.OrdinalIgnoreCase);
         return parts[0] + QueryString.Create(query.Where(p => !Regex.IsMatch(p.Key, "^(api_?key|token|access_token|x-emby-token|authorization)$", RegexOptions.IgnoreCase) && !(playlist && p.Key.Equals("StartTimeTicks", StringComparison.OrdinalIgnoreCase)))

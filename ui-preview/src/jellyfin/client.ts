@@ -2,7 +2,7 @@ import {parseDeviceSessions,type DeviceSession} from './devices.ts';
 import {parseSegments,type SegmentInfo} from '../playback/segments.ts';
 import {FRAME_VERSION} from '../version.ts';
 import {requestSignal} from '../platform/browser.ts';
-import type { BrowseQuery, Fetcher, ItemDto, Page, ServerInfo, Session, User } from './types.ts';
+import type { BrowseQuery, MusicQuery, Fetcher, ItemDto, Page, ServerInfo, Session, User } from './types.ts';
 import {parsePlaybackInfo,type PlayingReport} from '../playback/protocol.ts';
 import {subtitleUploadBody,type SubtitleSaveOptions} from './subtitleUpload.ts';
 import type {CustomSubtitle} from '../playback/customSubtitles.ts';
@@ -34,7 +34,7 @@ export function parseItem(value: unknown): ItemDto {
   if (!record(value) || typeof value.Id !== 'string' || !value.Id) throw new JellyfinError(0, 'The server returned an invalid media item.');
   // Runtime validation at the boundary: never assume optional collections/numbers are well formed.
   const item: ItemDto = { Id: value.Id };
-  for (const key of ['Name','OriginalTitle','Type','CollectionType','Overview','PremiereDate','OfficialRating','ParentBackdropItemId','SeriesPrimaryImageTag','SeriesId','ParentLogoItemId','ParentLogoImageTag','SeriesName','DisplayOrder','DateCreated'] as const) if (typeof value[key] === 'string') item[key] = value[key];
+  for (const key of ['Album','AlbumId','AlbumPrimaryImageTag','MediaType','PlaylistItemId','Name','OriginalTitle','Type','CollectionType','Overview','PremiereDate','OfficialRating','ParentBackdropItemId','SeriesPrimaryImageTag','SeriesId','ParentLogoItemId','ParentLogoImageTag','SeriesName','DisplayOrder','DateCreated'] as const) if (typeof value[key] === 'string') item[key] = value[key];
   for (const key of ['ProductionYear','CommunityRating','CriticRating','RunTimeTicks','PrimaryImageAspectRatio','IndexNumber','IndexNumberEnd','ParentIndexNumber','ChildCount'] as const) if (typeof value[key] === 'number' && Number.isFinite(value[key])) item[key] = value[key];
   if(item.PrimaryImageAspectRatio!==undefined&&item.PrimaryImageAspectRatio<=0)delete item.PrimaryImageAspectRatio;
   if (item.ProductionYear !== undefined && (!Number.isInteger(item.ProductionYear) || item.ProductionYear <= 0)) delete item.ProductionYear;
@@ -42,8 +42,9 @@ export function parseItem(value: unknown): ItemDto {
   if (item.CommunityRating !== undefined && (item.CommunityRating < 0 || item.CommunityRating > 10)) delete item.CommunityRating;
   if (item.CriticRating !== undefined && (item.CriticRating < 0 || item.CriticRating > 100)) delete item.CriticRating;
   for (const key of ['IndexNumber','IndexNumberEnd','ParentIndexNumber','ChildCount'] as const) if (item[key] !== undefined && (!Number.isInteger(item[key]) || item[key]! < 0)) delete item[key];
-  for (const key of ['Genres','Taglines','BackdropImageTags','ParentBackdropImageTags'] as const) if (Array.isArray(value[key])) item[key] = value[key].filter((v: unknown): v is string => typeof v === 'string' && !!v.trim());
+  for (const key of ['Artists','Genres','Taglines','BackdropImageTags','ParentBackdropImageTags'] as const) if (Array.isArray(value[key])) item[key] = value[key].filter((v: unknown): v is string => typeof v === 'string' && !!v.trim());
   for (const key of ['ImageTags','ProviderIds'] as const) if (record(value[key])) item[key] = Object.fromEntries(Object.entries(value[key]).filter(([,v]) => typeof v === 'string')) as Record<string,string>;
+  for(const key of ['ArtistItems','AlbumArtists'] as const)if(Array.isArray(value[key]))item[key]=value[key].filter(record).filter(v=>typeof v.Id==='string'&&!!v.Id).map(v=>({Id:v.Id as string,...(typeof v.Name==='string'?{Name:v.Name}:{})}));
   if (Array.isArray(value.People)) item.People = value.People.filter(record).map(p => ({ Id: typeof p.Id === 'string' ? p.Id : undefined, Name: typeof p.Name === 'string' ? p.Name : undefined, Type: typeof p.Type === 'string' ? p.Type : undefined, Role: typeof p.Role === 'string' ? p.Role : undefined, ...(typeof p.PrimaryImageTag === 'string' ? { PrimaryImageTag: p.PrimaryImageTag } : {}) }));
   if (record(value.UserData)) {
     item.UserData = {};
@@ -317,7 +318,18 @@ export class JellyfinClient {
     if (user.Id !== session.user.Id || user.Policy?.IsDisabled) throw new JellyfinError(403, 'This saved account is unavailable. Sign in again.');
     return user;
   }
+  ancestors(userId:string,id:string){return this.read(`Items/${encodeURIComponent(id)}/Ancestors?userId=${encodeURIComponent(userId)}`,value=>{if(!Array.isArray(value))throw new JellyfinError(0,'The server returned invalid library ancestry.');return value.map(parseItem);});}
   libraries(userId: string) { return this.read(this.version >= 12 ? `UserViews?userId=${encodeURIComponent(userId)}` : `Users/${encodeURIComponent(userId)}/Views`, parsePage); }
+  musicItems(userId:string,query:MusicQuery){
+    const params=new URLSearchParams({userId,recursive:'true',includeItemTypes:query.kind==='MusicArtist'?'Audio,MusicAlbum':query.kind,startIndex:String(Math.max(0,query.start??0)),limit:String(Math.max(1,Math.min(100,query.limit??40))),fields:'Genres,Overview,DateCreated',enableImages:'true',enableImageTypes:'Primary',imageTypeLimit:'1',enableUserData:'true',enableTotalRecordCount:'true',sortBy:query.sort??'SortName',sortOrder:query.sort==='DateCreated'?'Descending':'Ascending'});
+    if(query.parentId)params.set('parentId',query.parentId);
+    if(query.artistId)params.set('artistIds',query.artistId);
+    if(query.search?.trim())params.set('searchTerm',query.search.trim());
+    if(query.kind==='Playlist')params.set('mediaTypes','Audio');
+    if(query.favorite!==undefined)params.set('isFavorite',String(query.favorite));
+    return this.read(`${query.kind==='MusicArtist'?'Artists':'Items'}?${params}`,parsePage);
+  }
+  playlistTracks(userId:string,id:string,start=0){return this.read(`Playlists/${encodeURIComponent(id)}/Items?${new URLSearchParams({userId,startIndex:String(Math.max(0,start)),limit:'100',enableImages:'true',enableUserData:'true'})}`,parsePage);}
   async counts(userId: string) {
     const [movies, series] = await Promise.all([this.items(userId, { kind: 'Movie', limit: 1 }), this.items(userId, { kind: 'Series', limit: 1 })]);
     return { movies: movies.TotalRecordCount, series: series.TotalRecordCount };
@@ -342,12 +354,12 @@ export class JellyfinClient {
     if (query.favorite !== undefined) params.set('isFavorite', String(query.favorite));
     return this.read(`Items?${params}`, parsePage, query.resume ? 0 : 300000);
   }
-  async genres(userId:string,parentId='',kind?:'Movie'|'Series'){
+  async genres(userId:string,parentId='',kind?:'Movie'|'Series'|'Audio'){
     const names=new Set<string>();let start=0;
     for(;;){
       const params=new URLSearchParams({userId,includeItemTypes:kind??'Movie,Series',startIndex:String(start),limit:'200',enableTotalRecordCount:'true',sortBy:'SortName',sortOrder:'Ascending'});
       if(parentId)params.set('parentId',parentId);
-      const page=await this.read(`Genres?${params}`,parsePage);
+      const page=await this.read(`${kind==='Audio'?'MusicGenres':'Genres'}?${params}`,parsePage);
       for(const item of page.Items)if(item.Name?.trim())names.add(item.Name.trim());
       start+=page.Items.length;
       if(!page.Items.length||start>=page.TotalRecordCount)break;

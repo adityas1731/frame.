@@ -15,12 +15,12 @@ export function useFeaturedPool<T extends {Id?:string;id?:string}>(items:T[],pag
  const {rules}=useFeaturedSettings();const rule=rules[page];const ids=items.map(item=>item.Id??item.id!);const signature=JSON.stringify([ids,rule]);
  const order=useMemo(()=>featuredIds(ids,rule),[signature]);const map=new Map(items.map(item=>[item.Id??item.id!,item]));return order.flatMap(id=>map.has(id)?[map.get(id)!]:[]);
 }
-export function useServerFeaturedState(page:FeaturedPage,enabled=true,deck=true){
+export function useServerFeaturedState(page:FeaturedPage,enabled=true,deck=true,parentId?:string){
  const {client,session}=useConnection();const {rules}=useFeaturedSettings();const rule=rules[page];
- const data=useRemote(`featured:${session?.server.Id}:${session?.user.Id}:${page}:${enabled}:${JSON.stringify(rule)}`,async()=>{
+ const data=useRemote(`featured:${session?.server.Id}:${session?.user.Id}:${page}:${parentId??''}:${enabled}:${JSON.stringify(rule)}`,async()=>{
   if(!enabled||!client||!session)return [] as ItemDto[];
   const kind=page==='movies'?'Movie':page==='shows'?'Series':undefined;
-  const items=rule.custom?(await Promise.allSettled(rule.selected.map(id=>client.item(session.user.Id,id)))).flatMap(r=>r.status==='fulfilled'?[r.value]:[]):(await client.items(session.user.Id,{kind,sort:rule.shuffle?'Random':'DateCreated',limit:40})).Items;
+  const items=rule.custom?(parentId?(await client.itemsById(session.user.Id,rule.selected,parentId,kind??'Movie,Series')).Items:(await Promise.allSettled(rule.selected.map(id=>client.item(session.user.Id,id)))).flatMap(r=>r.status==='fulfilled'?[r.value]:[])):(await client.items(session.user.Id,{kind,parentId,sort:rule.shuffle?'Random':'DateCreated',limit:40})).Items;
   return items.filter(item=>['Movie','Series'].includes(item.Type??'')&&(!kind||item.Type===kind));
  },false);
  const selected=useFeaturedPool(data.data??[],page);return {items:deck?selected:data.data??[],loading:enabled&&data.loading};
