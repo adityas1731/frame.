@@ -6,6 +6,7 @@ import {readTree,inspectFiles,sha256} from '../../ui-preview/scripts/build-inspe
 import {zip,digest} from './zip.mjs';
 import {config,sourceIdentity} from '../../scripts/frame-core.mjs';
 import {sourceFingerprint} from '../../scripts/source-fingerprint.mjs';
+import {packageManifest} from './package-manifest.mjs';
 const root=fileURLToPath(new URL('../',import.meta.url)),ui=path.resolve(root,'../ui-preview');
 const profile=process.argv[2];if(!['release','diagnostics'].includes(profile))throw Error('Choose release or diagnostics');
 const identity=sourceIdentity();
@@ -23,7 +24,7 @@ run(dotnet,['build','src/Frame.Jellyfin.csproj','-c','Release','--nologo','-p:Fr
 run(dotnet,['run','--project','inspect/Frame.PackageCheck.csproj','-c','Release','--',path.join(root,'src/bin/Release/net10.0/Frame.Jellyfin.dll'),staged,profile,version]);
 const dll=await readFile(path.join(root,'src/bin/Release/net10.0/Frame.Jellyfin.dll'));
 // No Jellyfin, framework or dependency DLLs are redistributed. The host supplies its API assemblies.
-const meta={category:'General',changelog:config.releaseNotes+' ('+profile+')',description:'Frame Cinema client with item-scoped media relay',guid:'1c38ef02-2393-4f54-a18b-fcfcbf394d65',name:profile==='release'?'Frame':'Frame Internal',overview:'Open Frame/Web/ on this server',owner:'Frame project',targetAbi:config.jellyfinAbi,version,status:'Active',autoUpdate:false,assemblies:['Frame.Jellyfin.dll']};
+const meta=packageManifest(profile);
 const packageFiles=new Map([['Frame.Jellyfin.dll',dll],['meta.json',Buffer.from(JSON.stringify(meta,null,2))],['THIRD-PARTY-NOTICES.md',Buffer.concat([await readFile(path.join(ui,'THIRD-PARTY-NOTICES.md')),Buffer.from('\n\n'),await readFile(path.join(root,'THIRD-PARTY-NOTICES.md'))])],['licenses/Jellyfin.Common-GPL-3.0.html',await readFile(path.join(root,'licenses/Jellyfin.Common-GPL-3.0.html'))]]);
 packageFiles.set('LICENSE',await readFile(path.resolve(root,'../LICENSE')));
 packageFiles.set('SOURCE.md',Buffer.from(`# frame. Corresponding Source\n\nOriginal code: GPL-3.0-only. Copyright (C) 2026 frame. contributors.\n\nExact source commit: ${identity.commit}\n\nSource: https://github.com/adityas1731/frame./tree/${identity.commit}\n\nFor a public release, obtain the matching source ZIP listed in the release receipt alongside this plugin. It includes build scripts, pinned-toolchain configuration, lockfiles and notices. Run node scripts/pipeline.mjs both after restoring locked dependencies. See docs/LICENSING.md and docs/BUILDING.md. Third-party components retain their own licenses.\n`));

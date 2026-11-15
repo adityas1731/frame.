@@ -30,7 +30,9 @@ Use **Stop Server** and **Start Server** from the Windows tray menu for tray ins
 
 ## Updates And Rollback
 
-Keep the catalog repository configured so Jellyfin can discover compatible updates. Install an offered update through Jellyfin's plugin controls, then restart when requested. If Jellyfin's plugin-update task installs an update, it still needs a restart to load. GitHub source pushes do not update installed clients.
+From 1.0.7.0, public Frame packages enable Jellyfin's normal automatic updates. Keep the catalog repository enabled. **Dashboard → Scheduled Tasks → Update Plugins** downloads and installs compatible releases; its normal triggers run at startup and every 24 hours unless you change the schedule. Restart Jellyfin to activate an installed update. Frame does not restart your server automatically. Internal Diagnostics builds remain excluded.
+
+Versions through 1.0.6.0 shipped with automatic updates disabled. If upgrading from one of those versions, install 1.0.7.0 or later manually through the catalog once, then restart. Future public updates use the scheduled task. Previously published archives are unchanged.
 
 Before updating, retain a backup and the previous plugin package. For manual updates, repeat the manual installation steps with the new version's directory and checksum.
 

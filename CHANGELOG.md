@@ -1,5 +1,10 @@
 # Changelog
 
+## 1.0.7.0
+
+- Enable Jellyfin's normal automatic plugin updates for public Frame packages. Updates download and install through the Update Plugins scheduled task; restarting Jellyfin activates them.
+- Keep Internal Diagnostics builds excluded from automatic updates.
+
 ## 1.0.6.0
 
 - Automatically look up missing metadata and posters through saved provider IDs, using Jellyfin’s exact-match search. Keep existing metadata and artwork; do not apply library edits automatically.

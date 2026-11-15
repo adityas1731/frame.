@@ -20,6 +20,7 @@ try {
  if($frameManifest.format -ne 'frame-plugin-v1' -or $frameManifest.profile -ne $Profile -or $frameManifest.version -ne $frameMeta.version -or $frameMeta.targetAbi -ne '12.3.0.0' -or $frameMeta.guid -ne '1c38ef02-2393-4f54-a18b-fcfcbf394d65'){throw 'Plugin manifest mismatch'}
  if(-not $ExpectedVersion){$ExpectedVersion=if($Profile -eq 'release'){'0.1.0.0'}else{'0.1.0.1'}}
  if($frameMeta.version -ne $ExpectedVersion){throw 'Profile version mismatch'}
+ if([version]$frameMeta.version -ge [version]'1.0.7.0' -and $frameMeta.autoUpdate -cne ($Profile -eq 'release')){throw 'Plugin automatic-update policy mismatch'}
  foreach($frameProperty in $frameManifest.files.PSObject.Properties){if(-not $frameFiles.ContainsKey($frameProperty.Name)){throw 'Manifest file missing'};$frameHash=[Convert]::ToHexString([Security.Cryptography.SHA256]::HashData($frameFiles[$frameProperty.Name])).ToLowerInvariant();if($frameHash -ne $frameProperty.Value){throw 'Packaged file hash mismatch'}}
  if($frameManifest.files.PSObject.Properties.Name.Count -ne ($frameFiles.Count-1)){throw 'Incomplete file integrity manifest'}
  if($frameManifest.assemblySha256 -ne [Convert]::ToHexString([Security.Cryptography.SHA256]::HashData($frameFiles['Frame.Jellyfin.dll'])).ToLowerInvariant()){throw 'Assembly hash mismatch'}
