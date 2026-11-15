@@ -8,6 +8,14 @@
     "description": "Customizable Jellyfin browser client. Original Jellyfin Web stays available.",
     "versions": [
       {
+        "version": "1.0.7.0",
+        "targetAbi": "12.3.0.0",
+        "changelog": "Enable automatic updates for Frame through Jellyfinâ€™s Update Plugins scheduled task. Restart Jellyfin after an update to load the new version. Internal Diagnostics builds remain excluded from automatic updates.",
+        "timestamp": "2026-11-15T12:31:55+05:30",
+        "sourceUrl": "https://github.com/adityas1731/frame./releases/download/v1.0.7/frame-jellyfin-1.0.7.0-release-ecb83d6bc1c3.zip",
+        "checksum": "764b8183c6dee814c17da52c00835e50"
+      },
+      {
         "version": "1.0.6.0",
         "targetAbi": "12.3.0.0",
         "changelog": "Improve playback controls, subtitles, custom fonts and reusable tags. Add compact ticket-style Watch and Resume buttons, smoother transitions and a clearer offline screen. Automatically fill missing display metadata and artwork through verified provider IDs while preserving existing edits. Expand artwork selection and filter images that exceed processing limits.",
