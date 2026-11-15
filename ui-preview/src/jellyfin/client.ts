@@ -6,6 +6,7 @@ import type { BrowseQuery, Fetcher, ItemDto, Page, ServerInfo, Session, User } f
 import {parsePlaybackInfo,type PlayingReport} from '../playback/protocol.ts';
 import {subtitleUploadBody,type SubtitleSaveOptions} from './subtitleUpload.ts';
 import type {CustomSubtitle} from '../playback/customSubtitles.ts';
+import {artworkIdentity,exactMetadataMatch} from './artworkIdentity.ts';
 
 export class JellyfinError extends Error {
   readonly status: number;
@@ -220,7 +221,33 @@ export class JellyfinClient {
       this.invalidate();
     }finally{this.artworkWrites.delete(writeKey);}
   }
-  invalidateRemoteImages(itemId?:string) { for (const key of this.cache.keys()) if (key.includes(itemId?`Items/${encodeURIComponent(itemId)}/RemoteImages?`:'/RemoteImages?')) this.cache.delete(key); }
+  private artworkLookups=new Map<string,{expires:number;promise:Promise<ReturnType<typeof exactMetadataMatch>>}>();
+  private metadataActive=0;
+  private metadataQueue:(()=>void)[]=[];
+  private async exactMetadataRequest(item:ItemDto){
+    if(this.metadataActive>=3)await new Promise<void>(resolve=>this.metadataQueue.push(resolve));else this.metadataActive++;
+    try{return await this.request(`Items/RemoteSearch/${item.Type}`,'POST',{ItemId:item.Id,SearchInfo:{ProviderIds:artworkIdentity(item)},SearchProviderName:'TheMovieDb',IncludeDisabledProviders:false},false,false,undefined,false,true);}
+    finally{const next=this.metadataQueue.shift();if(next)next();else this.metadataActive--;}
+  }
+  invalidateRemoteImages(itemId?:string) {
+    for(const key of this.cache.keys())if(key.includes(itemId?`Items/${encodeURIComponent(itemId)}/RemoteImages?`:'/RemoteImages?'))this.cache.delete(key);
+    for(const key of this.artworkLookups.keys())if(!itemId||key.startsWith(itemId+':'))this.artworkLookups.delete(key);
+  }
+  /** Read-only exact-ID discovery. Never apply a match or edit library metadata. */
+  async artworkPosterFromIdentity(item:ItemDto){
+    const match=await this.metadataFromIdentity(item);return match?.url?{url:match.url,tmdbId:match.tmdbId}:null;
+  }
+  metadataFromIdentity(item:ItemDto){
+    if(!['Movie','Series'].includes(item.Type??'')||!Object.keys(artworkIdentity(item)).length)return Promise.resolve(null);
+    const key=`${item.Id}:${item.Type}:${JSON.stringify(artworkIdentity(item))}`,saved=this.artworkLookups.get(key);
+    if(saved&&saved.expires>this.now())return saved.promise;
+    const entry={expires:this.now()+21600000,promise:Promise.resolve(null) as Promise<ReturnType<typeof exactMetadataMatch>>};
+    entry.promise=this.exactMetadataRequest(item)
+      .then(value=>{const match=exactMetadataMatch(item,value);if(!match)entry.expires=this.now()+120000;return match;})
+      .catch(error=>{entry.expires=this.now()+5000;throw error;});
+    this.artworkLookups.set(key,entry);if(this.artworkLookups.size>100)this.artworkLookups.delete(this.artworkLookups.keys().next().value!);
+    return entry.promise;
+  }
   /** Exact person identity only; never search names or save images onto Jellyfin. */
   remotePortrait(person: ItemDto) {
     const tmdb=Object.entries(person.ProviderIds??{}).find(([key])=>key.toLowerCase()==='tmdb')?.[1];
@@ -247,9 +274,10 @@ export class JellyfinClient {
   }
   private remoteArtwork(item:ItemDto,type:'Backdrop'|'Primary') {
     const tmdb = Object.entries(item.ProviderIds ?? {}).find(([key]) => key.toLowerCase() === 'tmdb')?.[1];
-    if (!['Movie', 'Series'].includes(item.Type ?? '') || !tmdb || !/^[1-9]\d*$/.test(tmdb) || !Number.isSafeInteger(Number(tmdb))) return Promise.resolve([]);
+    if (!['Movie', 'Series'].includes(item.Type ?? '') || !Object.keys(artworkIdentity(item)).length || (tmdb&&(!/^[1-9]\d*$/.test(tmdb)||!Number.isSafeInteger(Number(tmdb))))) return Promise.resolve([]);
     const query = new URLSearchParams({ type, providerName: 'TheMovieDb', startIndex: '0', limit: '40', includeAllLanguages: 'true' });
-    return this.read(`Items/${encodeURIComponent(item.Id)}/RemoteImages?${query}`, value => {
+    const route=`Items/${encodeURIComponent(item.Id)}/RemoteImages?${query}`;
+    return this.read(route, value => {
       if (!record(value) || !Array.isArray(value.Images)) return [];
       const images = value.Images.filter(record).flatMap(image => {
         if (image.ProviderName !== 'TheMovieDb' || image.Type !== type || typeof image.Url !== 'string' || typeof image.Width !== 'number' || typeof image.Height !== 'number') return [];
@@ -263,9 +291,13 @@ export class JellyfinClient {
         } catch { return []; }
       });
       return [...new Map(images.sort((a,b)=>Number(!!a.language)-Number(!!b.language)||Math.abs(a.width-3840)-Math.abs(b.width-3840)).map(image=>[image.url,image])).values()];
-    }, 21600000);
+    }, 21600000).then(images=>{
+      const entry=this.cache.get(route);
+      if(!images.length&&entry)entry.expires=Math.min(entry.expires,this.now()+120000);
+      return images;
+    });
   }
-  dispose() { this.controller.abort(); this.token = ''; this.cache.clear(); this.pending.clear(); this.images.clear(); }
+  dispose() { this.controller.abort(); this.token = ''; this.cache.clear(); this.pending.clear(); this.images.clear(); this.artworkLookups.clear(); }
   async probe(): Promise<ServerInfo> { const info = parseServer(await this.request('System/Info/Public','GET',undefined,false,true)); this.version = Number(info.Version.split('.')[0]); return info; }
   async authenticate(server: ServerInfo, username: string, password: string): Promise<Session> {
     const result = await this.request('Users/AuthenticateByName', 'POST', { Username: username, Pw: password });
@@ -335,6 +367,15 @@ export class JellyfinClient {
     return this.read(`Items?${params}`,parsePage,0);
   }
   item(userId: string, id: string) { return this.read(this.version >= 12 ? `Items/${encodeURIComponent(id)}?userId=${encodeURIComponent(userId)}` : `Users/${encodeURIComponent(userId)}/Items/${encodeURIComponent(id)}`, parseItem, 900000); }
+  /** Explicit artwork recheck: fresh metadata and images, without library writes. */
+  async refreshItemArtwork(userId:string,id:string){
+    const route=this.version>=12?`Items/${encodeURIComponent(id)}?userId=${encodeURIComponent(userId)}`:`Users/${encodeURIComponent(userId)}/Items/${encodeURIComponent(id)}`;
+    await this.pending.get(route)?.catch(()=>{});
+    this.cache.delete(route);this.invalidateRemoteImages(id);
+    const prefix=`Items/${encodeURIComponent(id)}/Images/`;
+    for(const key of this.images.keys())if(key.startsWith(prefix))this.images.delete(key);
+    return this.item(userId,id);
+  }
   nextUp(userId:string, limit=12, parentId?:string,seriesId?:string) {
     const params=new URLSearchParams({userId,limit:String(Math.max(1,Math.min(40,limit))),fields:'Overview,Genres',enableImages:'true',enableUserData:'true',enableTotalRecordCount:'true',enableResumable:'true',enableRewatching:'false'});
     if(parentId)params.set('parentId',parentId);

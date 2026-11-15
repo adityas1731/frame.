@@ -1,29 +1,29 @@
 /* Each half exposes the backdrop through its corner notches. */
 body .ticket-button.button,
 :root[data-layout='cinema'] body .detail-play-stack>.watch-action>.ticket-button.button{
-  display:inline-flex;align-items:stretch;gap:0;padding:0;min-height:48px;min-width:156px;
-  background:transparent;color:#15171b;border:0;border-radius:12px;box-shadow:none;overflow:visible;
-  font:inherit;font-weight:650;white-space:nowrap;isolation:isolate;
+  display:inline-flex;align-items:stretch;gap:0;padding:0;height:48px;min-height:48px;width:176px;min-width:176px;max-width:176px;flex:none;
+  background:transparent;color:#15171b;border:0;border-radius:0;box-shadow:none;overflow:visible;
+  font:400 15px/1.2 system-ui,sans-serif;white-space:nowrap;isolation:isolate;
 }
 .ticket-button-main,.ticket-button-stub{
-  display:flex;align-items:center;justify-content:center;background:#f4f4f5;min-height:48px;
+  display:flex;align-items:center;justify-content:center;background:#f1edde;min-height:48px;
   transition:transform .26s cubic-bezier(.2,.75,.25,1),background .2s;
 
 }
 :root[data-layout='cinema'] body .detail-actions .ticket-button.button>span{display:flex;align-items:center;justify-content:center}
-.ticket-button-main{flex:1;padding:12px 22px;position:relative;transform-origin:right bottom;border-radius:12px 0 0 12px;
+.ticket-button-main{font:600 15px/1.2 system-ui,sans-serif;gap:6px;flex:1;min-width:0;padding:10px;position:relative;transform-origin:right bottom;border-radius:0 0 0 12px;
   -webkit-mask:radial-gradient(circle at right top,transparent 5px,#000 5.5px) top/100% 51% no-repeat,radial-gradient(circle at right bottom,transparent 5px,#000 5.5px) bottom/100% 51% no-repeat;
   mask:radial-gradient(circle at right top,transparent 5px,#000 5.5px) top/100% 51% no-repeat,radial-gradient(circle at right bottom,transparent 5px,#000 5.5px) bottom/100% 51% no-repeat}
+.ticket-button-main>svg{flex:none;width:14px;height:14px}
 .ticket-button-main::after{content:'';position:absolute;right:0;top:9px;bottom:9px;border-right:1px dashed #15171b35}
-.ticket-button-stub{width:46px;flex-shrink:0;flex-direction:column;gap:4px;background:#f4f4f5;transform-origin:left bottom;font-family:ui-monospace,monospace;border-radius:0 12px 12px 0;
+.ticket-button-stub{width:54px;flex:0 0 54px;min-width:0;padding:4px;flex-direction:column;gap:3px;background:#f1edde;transform-origin:left bottom;font-family:ui-monospace,monospace;border-radius:0 12px 12px 0;
   -webkit-mask:radial-gradient(circle at left top,transparent 5px,#000 5.5px) top/100% 51% no-repeat,radial-gradient(circle at left bottom,transparent 5px,#000 5.5px) bottom/100% 51% no-repeat;
   mask:radial-gradient(circle at left top,transparent 5px,#000 5.5px) top/100% 51% no-repeat,radial-gradient(circle at left bottom,transparent 5px,#000 5.5px) bottom/100% 51% no-repeat}
-.ticket-button[data-episode] .ticket-button-main{padding-inline:26px}
-.ticket-button[data-episode] .ticket-button-stub{width:94px;padding-inline:10px;font:inherit}
-.ticket-episode-label{font:inherit;line-height:1.2;letter-spacing:0;white-space:normal;text-align:center;max-width:100%}
-.ticket-button-stub small{font-size:7px;line-height:1;letter-spacing:.14em;color:#54565c}
-.ticket-button:hover:not(:disabled) .ticket-button-main{background:#fff}
-.ticket-button:hover:not(:disabled) .ticket-button-stub{background:#fff}
+.ticket-episode-label{display:block;font:500 14px/1.1 system-ui,sans-serif;font-variant-numeric:tabular-nums;letter-spacing:0;white-space:normal;text-align:center;max-width:100%;overflow-wrap:anywhere}
+.ticket-resume-time{display:flex;flex-direction:column;align-items:center;gap:2px;font:500 14px/1.1 system-ui,sans-serif;font-variant-numeric:tabular-nums}
+.ticket-button-stub small{font:400 9px/1 system-ui,sans-serif;letter-spacing:.14em;color:#54565c}
+.ticket-button:hover:not(:disabled) .ticket-button-main{background:#faf6e9}
+.ticket-button:hover:not(:disabled) .ticket-button-stub{background:#faf6e9}
 .ticket-button[data-torn] .ticket-button-main{transform:translateX(-2px) rotate(-6deg)}
 .ticket-button[data-torn] .ticket-button-stub{transform:translate(5px,1px) rotate(8deg)}
 body .ticket-button[data-torn]:disabled{opacity:1}
@@ -33,3 +33,9 @@ body .ticket-button:focus-visible{outline:2px solid var(--accent);outline-offset
 :root[data-effects='off'] .ticket-button :is(.ticket-button-main,.ticket-button-stub),
 :root[data-motion='reduced'] .ticket-button :is(.ticket-button-main,.ticket-button-stub){transition:none;transform:none}
 
+
+.ticket-button-stub>svg{width:18px;height:18px;flex:none}
+
+.ticket-button-main{clip-path:polygon(6px 0,100% 0,100% 100%,6px 100%,0 calc(100% - 6px),0 calc(50% + 5px),4px calc(50% + 3px),4px calc(50% - 3px),0 calc(50% - 5px),0 6px)}
+.ticket-button-stub{clip-path:polygon(0 0,calc(100% - 6px) 0,100% 6px,100% calc(50% - 5px),calc(100% - 4px) calc(50% - 3px),calc(100% - 4px) calc(50% + 3px),100% calc(50% + 5px),100% calc(100% - 6px),calc(100% - 6px) 100%,0 100%)}
+.ticket-play-label{font:500 12px/1.1 system-ui,sans-serif;letter-spacing:.06em}

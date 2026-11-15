@@ -37,3 +37,20 @@ body .page-transition { animation: section-enter 360ms cubic-bezier(.22,.61,.36,
 @media(prefers-reduced-motion:reduce) {
   body .page-transition, .page-transition * { animation: none !important; }
 }
+
+/* Shared timing for route, panel and control motion. Keep hit areas stationary. */
+:root{--motion-fast:160ms;--motion-ui:240ms;--motion-enter:360ms;--motion-art:420ms;--motion-ease:cubic-bezier(.22,.61,.36,1);--ease:var(--motion-ease)}
+body .page-transition,body .title-transition>.detail-page{animation:section-enter var(--motion-enter) var(--motion-ease) backwards}
+.page-transition :is(.media-grid,.widget-items:has(>.media-card),.category-grid,.detail-body,.settings-layout,.watchlist-empty){animation:section-enter var(--motion-enter) var(--motion-ease) backwards}
+body :is(.modal[open],.section-editor-inline,.appearance-savebar,.frame-select-menu,.player-track-panel,.player-episode-browser){animation:surface-enter var(--motion-ui) var(--motion-ease) backwards}
+body dialog.collection-layout-drawer{animation:layout-drawer-in var(--motion-enter) var(--motion-ease) backwards}
+@keyframes surface-enter{from{opacity:0;transform:translateY(4px)}to{opacity:1;transform:none}}
+:root[data-layout='cinema'] body :is(.cinema-copy,.collection-spotlight-copy){animation:surface-enter var(--motion-enter) var(--motion-ease) backwards}
+body .page-transition :is(.server-artwork img,.online-backdrop){animation:artwork-enter var(--motion-art) var(--motion-ease) backwards}
+body :is(.button,.icon-button,.nav-item,.player-icon,.frame-select,.toggle){transition-duration:var(--motion-ui);transition-timing-function:var(--motion-ease)}
+:root[data-layout='cinema'] body .button.hero-primary:hover{transform:none}
+:root[data-effects='off'] :is(.page-transition,.page-transition *,.frame-player,.player-loading-mark i,.modal[open],.collection-layout-drawer,.player-track-panel,.player-episode-browser){animation:none!important;transition:none!important}
+
+/* Titles use the same section entry as Movies and TV Shows. Start it when
+   the detail content arrives, rather than spending it on the loading message. */
+body .page-transition.title-transition{animation:none}

@@ -9,9 +9,9 @@ const server=await createServer({root:fileURLToPath(new URL('../',import.meta.ur
 after(()=>server.close());
 const {PlayerSettings}=await server.ssrLoadModule('/src/playback/PlayerSettings.tsx');
 const subtitle=(Index,Language,extra={})=>({Type:'Subtitle',Index,Language,Codec:'subrip',...extra});
-function render(streams,selected,overrides={},initialTab='captions'){
+function render(streams,selected,overrides={},initialTab='captions',captionOverride={}){
  const source={Id:'source',SupportsTranscoding:true,MediaStreams:streams};const state={phase:'playing',canHls:true,plan:{source,subtitleIndex:selected,subtitle:selected>=0?'/vtt':undefined},...overrides};const calls=[];let tree;
- function Probe(){tree=PlayerSettings({state,initialTab,caption:{version:2,font:'system',size:100,background:true,opacity:50},changeCaption(){},sync(){},close(){},change:v=>calls.push(v),loadCustom:async()=>{},selectCustom:()=>calls.push('custom'),selectAdditional:id=>calls.push(id)});return tree;}
+ function Probe(){tree=PlayerSettings({state,initialTab,caption:{version:2,font:'system',size:100,background:true,opacity:50,...captionOverride},changeCaption(){},sync(){},close(){},change:v=>calls.push(v),loadCustom:async()=>{},selectCustom:()=>calls.push('custom'),selectAdditional:id=>calls.push(id)});return tree;}
  const html=renderToStaticMarkup(createElement(Probe));const nodes=[];function visit(n){if(Array.isArray(n)){n.forEach(visit);return;}if(!n||typeof n!=='object')return;nodes.push(n);visit(n.props?.children);}visit(tree);
  const selector=nodes.find(n=>n.props?.['aria-label']==='Subtitle track');
  return {html,calls,nodes,selector,options:[selector?.props.children].flat(Infinity).filter(n=>n?.type==='option'),choose:value=>selector.props.onValueChange(value)};
@@ -57,4 +57,17 @@ test('Direct Play quality keeps bitrate in its selector only',()=>{
  const source={Id:'source',Bitrate:12500000,MediaStreams:[]};
  const r=render([],-1,{videoHeight:1080,plan:{source,mode:'direct',selection:{maxBitrate:40000000},info:{MediaSources:[source]}}},'quality');
  assert.match(r.html,/1080p/);assert.doesNotMatch(r.html,/12.5 Mbps/);assert.doesNotMatch(r.html,/40 Mbps limit/);
+});
+
+
+test('subtitle custom font exposes its own saved family and uses the registered local alias',()=>{
+ const r=render([], -1,{},'captions',{font:'custom',customFont:'Agrave Pro'});
+ assert.match(r.html,/Installed Font Family/);assert.match(r.html,/value="Agrave Pro"/);
+ assert.match(r.html,/font-family:&quot;frame-local-/);assert.match(r.html,/Leave blank to use the custom font from Appearance/);
+});
+
+test('quality status reports cropped decoded 4K and does not equate requested quality with actual output',()=>{
+ const plan={source:{Id:'source',SupportsTranscoding:true,MediaStreams:[{Type:'Video',Index:0,Width:3840,Height:1920}]},selection:{maxHeight:2160,maxBitrate:40000000},info:{MediaSources:[]}};
+ const cropped=render([], -1,{plan,videoWidth:3840,videoHeight:1920},'quality');assert.match(cropped.html,/Decoded frame: 3840 × 1920[^>]*>2160p<\/strong>/);
+ const scaled=render([], -1,{plan,videoWidth:1920,videoHeight:1080},'quality');assert.match(scaled.html,/Decoded frame: 1920 × 1080[^>]*>1080p<\/strong>/);
 });

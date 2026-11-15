@@ -19,7 +19,7 @@ export function TicketButton({children,stub,className='',onClick,...props}:Butto
     clearTimeout(reset.current);setTorn(true);
     reset.current=setTimeout(()=>setTorn(false),ticketTearDuration+ticketAfterTearDelay+300);
   }}>
-    <span className="ticket-button-main">{children}</span>
-    <span className="ticket-button-stub" aria-hidden="true">{stub??<><Play size={14} fill="currentColor"/><small>PLAY</small></>}</span>
+    <span className="ticket-button-main"><Play size={14} fill="currentColor" aria-hidden="true"/><span>{children}</span></span>
+    <span className="ticket-button-stub" aria-hidden="true">{stub??<span className="ticket-play-label">PLAY</span>}</span>
   </button>;
 }

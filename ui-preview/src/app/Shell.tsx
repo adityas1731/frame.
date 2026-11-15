@@ -112,7 +112,7 @@ export function Shell() {
 <Link className="connection-notice-action" to="/connect">Reconnect<ArrowUpRight size={16} aria-hidden="true"/></Link>
 </section>}
       <main id="main-content" tabIndex={-1}>
-<div key={`${location.pathname}:${session?.server.Id ?? 'mock'}:${session?.user.Id ?? ''}:${session?.created ?? ''}`} className="page-transition">
+<div key={`${location.pathname}:${session?.server.Id ?? 'mock'}:${session?.user.Id ?? ''}:${session?.created ?? ''}`} className={`page-transition${location.pathname.startsWith('/item/')?' title-transition':''}`}>
 <Outlet/>
 </div>
 </main><MetadataCredit/>

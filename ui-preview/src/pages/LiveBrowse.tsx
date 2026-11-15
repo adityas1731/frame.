@@ -51,7 +51,7 @@ export function LiveBrowse({ mode }: { mode: CollectionMode }) {
 {customLayout&&<CollectionLayoutButton layout={layout} onPageSizeChange={()=>change({start:''})}/>}
 </header>}
     {bannerLoading&&!hasSpotlight&&<HeroPlaceholder collection/>}
-    {hasSpotlight&&<CollectionSpotlight page={mode==='movies'?'movies':'shows'} pageTitle={mode==='movies'?'Movies':'TV Shows'} stories={bannerItems.map(item=>({id:item.Id,title:itemTitle(item),description:item.Overview??undefined,meta:[item.ProductionYear,item.Type==='Series'?undefined:runtime(item),displayGenres(item.Genres)[0]].filter(Boolean).join(' · '),to:`/item/${encodeURIComponent(item.Id)}`,artwork:<FeaturedServerArtwork item={item}/>}))}/>}
+    {hasSpotlight&&<CollectionSpotlight page={mode==='movies'?'movies':'shows'} pageTitle={mode==='movies'?'Movies':'TV Shows'} stories={bannerItems.map(item=>({item,id:item.Id,title:itemTitle(item),description:item.Overview??undefined,meta:[item.ProductionYear,item.Type==='Series'?undefined:runtime(item),displayGenres(item.Genres)[0]].filter(Boolean).join(' · '),to:`/item/${encodeURIComponent(item.Id)}`,artwork:<FeaturedServerArtwork item={item}/>}))}/>}
     <form className="search-stage" role="search" onSubmit={e => e.preventDefault()}>
 <Search size={24}/>
 <input aria-label="Search Jellyfin titles" placeholder="Find a movie or series…" value={raw} onChange={e => change({ q: e.target.value, start: '' })}/>

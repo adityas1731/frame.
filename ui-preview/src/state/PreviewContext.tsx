@@ -1,5 +1,6 @@
+import {useInstalledFont} from '../appearance/useInstalledFont';
 import {PreviewContext as Context} from './preview-context';
-import {fonts,fontFamily,validFontName,customFontFamily,type FontId} from '../appearance/fonts';
+import {fonts,fontFamily,validFontName,installedFontFamily,type FontId} from '../appearance/fonts';
 import { useContext, useEffect, useState, type ReactNode } from 'react';
 
 export const themes = ['graphite', 'midnight', 'forest', 'plum', 'ocean', 'espresso', 'slate', 'obsidian'] as const;
@@ -7,11 +8,11 @@ export type Theme = typeof themes[number];
 export const sectionNames = { continue: 'Continue Watching', new: 'Recently added', picks: 'Recommended', top: 'Top Rated', shows: 'TV Shows' };
 export type Section = keyof typeof sectionNames;
 export interface Preferences {
-  theme: Theme; episodeSize:'small'|'medium'|'large'; textScale: '90' | '100' | '110' | '125' | '140'; density: 'comfortable' | 'compact'; posterSize: 'small' | 'medium' | 'large';
+  theme: Theme; fontSize:string; episodeSize:'small'|'medium'|'large'; textScale: '90' | '100' | '110' | '125' | '140'; density: 'comfortable' | 'compact'; posterSize: 'small' | 'medium' | 'large';
   font: FontId; customFont: string; navigation: 'expanded' | 'compact'; accent: 'amber' | 'sage' | 'blue' | 'rose' | 'lavender' | 'teal' | 'coral' | 'silver';
   homeSections: Section[]; showTitles: boolean; showRatings: boolean; reducedMotion: boolean; heroAutoAdvance: boolean; onlineMetadata: boolean;
 }
-export const defaults: Preferences = { theme: 'graphite', episodeSize:'medium', textScale: '100', density: 'comfortable', posterSize: 'medium', font: 'system', customFont: '', navigation: 'compact', accent: 'amber', homeSections: ['continue', 'new', 'picks', 'top', 'shows'], showTitles: true, showRatings: true, reducedMotion: false, heroAutoAdvance: true, onlineMetadata: true };
+export const defaults: Preferences = { theme: 'graphite', fontSize:'14', episodeSize:'medium', textScale: '100', density: 'comfortable', posterSize: 'medium', font: 'system', customFont: '', navigation: 'compact', accent: 'amber', homeSections: ['continue', 'new', 'picks', 'top', 'shows'], showTitles: true, showRatings: true, reducedMotion: false, heroAutoAdvance: true, onlineMetadata: true };
 interface Snapshot { carouselVersion: 1; preferences: Preferences; favorites: string[]; watchlist: string[]; watched: string[] }
 const key = 'frame.preview.v1';
 function readSnapshot(): Snapshot {
@@ -22,6 +23,7 @@ function readSnapshot(): Snapshot {
     const p = value.preferences ?? {};
     const preferences = { ...defaults, textScale: defaults.textScale };
     const options: Record<string, readonly string[]> = { theme: themes, episodeSize:['small','medium','large'], density: ['comfortable', 'compact'], posterSize: ['small', 'medium', 'large'], font: fonts.map(font=>font.id), navigation: ['expanded', 'compact'], accent: ['amber', 'sage', 'blue', 'rose', 'lavender', 'teal', 'coral', 'silver'] };
+    options.fontSize = Array.from({length:11},(_,index)=>String(index+12));
     options.textScale = ['90', '100', '110', '125', '140'];
     if (typeof p.customFont === 'string' && validFontName(p.customFont)) preferences.customFont = p.customFont;
     for (const k of Object.keys(options)) if (options[k].includes(p[k])) Object.assign(preferences, { [k]: p[k] });
@@ -39,6 +41,7 @@ export interface PreviewState extends Snapshot {
 
 export function PreviewProvider({ children }: { children: ReactNode }) {
   const [snapshot, setSnapshot] = useState(readSnapshot);
+  useInstalledFont(snapshot.preferences.customFont,snapshot.preferences.font==='custom');
   const [toast, setToast] = useState<string | null>(null);
   const [toastVersion, setToastVersion] = useState(0);
   useEffect(() => { try { localStorage.setItem(key, JSON.stringify(snapshot)); } catch { /* Preview remains usable when storage is unavailable. */ } }, [snapshot]);
@@ -46,7 +49,8 @@ export function PreviewProvider({ children }: { children: ReactNode }) {
     const p = snapshot.preferences;
     document.documentElement.style.setProperty('--font-body',fontFamily(p.font));
     document.documentElement.style.fontFamily='var(--font-body)';
-    document.documentElement.style.setProperty('--custom-font', customFontFamily(p.customFont));
+    document.documentElement.style.setProperty('--custom-font', installedFontFamily(p.customFont));
+    document.documentElement.style.setProperty('--app-font-size', `${p.fontSize??'14'}px`);
     document.documentElement.style.setProperty('--ui-scale', String(Number(p.textScale) / 100));
     Object.assign(document.documentElement.dataset, { layout: 'cinema', theme: p.theme, density: p.density, poster: p.posterSize, episodeSize:p.episodeSize??'medium', font: p.font, navigation: p.navigation, accent: p.accent, motion: p.reducedMotion ? 'reduced' : 'full' });
     document.querySelector('meta[name="theme-color"]')?.setAttribute('content', '#101111');

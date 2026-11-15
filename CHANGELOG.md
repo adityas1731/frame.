@@ -2,7 +2,12 @@
 
 ## 1.0.6.0
 
+- Automatically look up missing metadata and posters through saved provider IDs, using Jellyfin’s exact-match search. Keep existing metadata and artwork; do not apply library edits automatically.
 - Refine playback settings, subtitle controls, quality labels and control spacing.
+- Fix installed-font rendering and add a separate custom subtitle font setting.
+- Recheck current image tags and provider IDs when refreshing artwork, retry failed images, and shorten caching of missing backdrops.
+- Find missing artwork through verified provider IDs, including IMDb-only titles. Use TVmaze banner and poster backups for matched shows, and retry alternate images when a URL fails.
+- Replace the playback spinner with a compact loading indicator, align page and panel transitions, and keep the seek-bar focus outline for keyboard input.
 - Add tag management in Settings. Keep unassigned tags available after refresh; removing a title's tag does not delete the tag.
 - Highlight assigned tags and make existing tags reusable from Manage Title.
 - Add ticket-style Watch and Resume buttons with episode labels and a half-second pause after the tear animation.

@@ -1,3 +1,4 @@
+import {InstalledFontField} from '../studio/InstalledFontField';
 import {SegmentSettings} from './SegmentSettings';
 import {skippingPreferences,type SegmentInfo,type SkippingPreferences} from './segments';
 import {visibleLanguage,trackLabel as trackName} from './languages';
@@ -23,7 +24,7 @@ export function PlayerSettings({state,initialTab,caption,changeCaption,change,sy
  const canSelectSubtitle=(track:MediaStream)=>textSubtitle(track)||state.canHls&&plan?.source.SupportsTranscoding===true&&!plan.source.RequiresOpening;
  const activeAudio=tracks.find(track=>track.Type==='Audio'&&track.Index===plan?.audioIndex);
  const [delayDraft,setDelayDraft]=useState(String(state.subtitleDelay??0));useEffect(()=>setDelayDraft(String(state.subtitleDelay??0)),[state.subtitleDelay,plan?.source.Id,plan?.subtitleIndex]);
- const sourceVideo=plan?.source.MediaStreams.find(track=>track.Type==='Video');const decoded=resolutionLabel(state.videoHeight);
+ const sourceVideo=plan?.source.MediaStreams.find(track=>track.Type==='Video');const decoded=resolutionLabel(state.videoHeight,state.videoWidth);
  const subtitleValue=state.customSubtitleSelected?'custom':state.additionalSubtitleSelected?`extra:${state.additionalSubtitleSelected}`:plan?.subtitleIndex===-1?'off':`jf:${plan?.subtitleIndex}`;
  function chooseSubtitle(value:string){if(!ready)return;if(value==='off')change({subtitleIndex:-1});else if(value==='custom')selectCustom?.();else if(value.startsWith('extra:'))selectAdditional?.(value.slice(6));else{const track=subtitles.find(t=>`jf:${t.Index}`===value);if(track&&canSelectSubtitle(track))change({subtitleIndex:track.Index});}}
  const ready=!!plan&&!['negotiating','failed'].includes(state.phase);
@@ -54,11 +55,12 @@ export function PlayerSettings({state,initialTab,caption,changeCaption,change,sy
  <div className="caption-sample" style={{fontFamily:captionAppearance(caption).fontFamily,fontSize:`${caption.size/100*19}px`}}><span style={captionAppearance(caption)}>This is a subtitle preview.</span></div>
  <label>Font<Select aria-label="Subtitle font" value={caption.font} onValueChange={value=>changeCaption({...caption,font:value as CaptionFont})}>{fonts.map(font=><option key={font.id} value={font.id}>{font.label}</option>)}</Select></label>
  <label>Text Size<Select aria-label="Subtitle text size" value={caption.size} onValueChange={value=>changeCaption({...caption,size:Number(value)})}><option value={90}>Small</option><option value={100}>Standard</option><option value={120}>Large</option></Select></label>
+ {caption.font==='custom'&&<div className="caption-custom-font"><InstalledFontField value={caption.customFont??''} onChange={customFont=>changeCaption({...caption,customFont})}/><small>Leave blank to use the custom font from Appearance.</small></div>}
  <label className="caption-background-toggle"><span>Background</span><input aria-label="Subtitle background" type="checkbox" checked={caption.background} onChange={e=>changeCaption({...caption,background:e.target.checked})}/></label>
  <label>Background Opacity <output>{caption.opacity}%</output><input aria-label="Subtitle background opacity" type="range" min={0} max={100} step={5} value={caption.opacity} disabled={!caption.background} onChange={e=>changeCaption({...caption,opacity:Number(e.target.value)})}/></label>
  <p>Applies to text subtitles only. Saved on this device.</p></fieldset></div></>}
  {tab==='quality'&&<div className="playback-quality-settings">
- <div className="playback-resolution"><span>Playing At</span><div><strong>{decoded??'Waiting for video…'}</strong></div></div>
+ <div className="playback-resolution"><span>Playing At</span><div><strong title={state.videoWidth&&state.videoHeight?`Decoded frame: ${state.videoWidth} × ${state.videoHeight}`:undefined}>{decoded??'Waiting for video…'}</strong></div></div>
  <label className="playback-field">Resolution<Select aria-label="Playback resolution" value={plan?.selection.maxHeight??0} disabled={!ready||!state.canHls||!plan?.source.SupportsTranscoding} onValueChange={value=>change({maxHeight:Number(value)||undefined,forceTranscode:false})}><option value={0}>Auto</option>{resolutionOptions(sourceVideo?.Width,sourceVideo?.Height).map(height=><option key={height} value={height}>{height}p</option>)}</Select></label>
  <label className="playback-field">Bitrate<Select aria-label="Playback quality" value={plan?.selection.maxBitrate??40000000} disabled={!ready||!state.canHls} onValueChange={value=>change({maxBitrate:Number(value),forceTranscode:false})}>{[40000000,20000000,8000000,4000000,2000000].map(rate=><option key={rate} value={rate}>{bitrateLabel(rate)}{rate===40000000?' · Auto':''}</option>)}</Select></label>
  {plan&&plan.info.MediaSources.length>1&&<label className="playback-field">Version<Select aria-label="Media version" value={plan.source.Id} onValueChange={value=>change({sourceId:value,audioIndex:undefined,subtitleIndex:undefined,maxHeight:undefined,forceTranscode:false})}>{plan.info.MediaSources.map(source=><option key={source.Id} value={source.Id}>{source.Name||source.Container||'Media version'}</option>)}</Select></label>}

@@ -28,3 +28,9 @@ test('compact quality labels use decoded height and explicit bitrate units',()=>
  assert.equal(resolutionLabel(2160),'2160p');assert.equal(resolutionLabel(1080),'1080p');assert.equal(resolutionLabel(0),undefined);assert.equal(resolutionLabel(Infinity),undefined);
  assert.equal(bitrateLabel(40000000),'40 Mbps');assert.equal(bitrateLabel(12500000),'12.5 Mbps');assert.equal(bitrateLabel(0),undefined);
 });
+
+test('cropped 4K and Full HD label by decoded frame tier, not an arbitrary cropped height',()=>{
+ assert.equal(resolutionLabel(1920,3840),'2160p');assert.equal(resolutionLabel(1600,3840),'2160p');assert.equal(resolutionLabel(2160,3840),'2160p');assert.equal(resolutionLabel(2160,4096),'2160p');
+ assert.equal(resolutionLabel(800,1920),'1080p');assert.equal(resolutionLabel(1080,1920),'1080p');assert.equal(resolutionLabel(720,1280),'720p');
+ assert.equal(resolutionLabel(1920,1080),'1920p','portrait frame must not be falsely promoted');assert.equal(resolutionLabel(1080,3840),'1080p','extreme ultrawide is not a 4K cinema frame');assert.equal(resolutionLabel(0,3840),undefined);
+});

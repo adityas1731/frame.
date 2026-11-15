@@ -77,3 +77,10 @@
 :root[data-layout='cinema'] body .detail-restart-action .watch-action>.button:hover{background:#ffffff22}
 :root[data-transparency='off'] body .detail-restart-action .watch-action>.button{background:var(--surface)}
 @media(max-width:520px){.detail-restart-action{padding-left:14px}:root[data-layout='cinema'] body .detail-restart-action .watch-action>.button{min-width:96px;padding:10px 13px}}
+
+/* Align the ticket with save icons; labels sit beneath the same action row. */
+:root[data-layout='cinema'] body .detail-actions:has(.detail-play-stack){gap:24px}
+.detail-actions .detail-play-stack{padding-top:1px}
+.detail-actions .detail-saves{position:relative;border-left:0;padding-left:24px;gap:18px}
+.detail-actions .detail-saves::before{content:'';position:absolute;left:0;top:7px;height:36px;width:1px;background:#ffffff26}
+@media(max-width:520px){:root[data-layout='cinema'] body .detail-actions:has(.detail-play-stack){gap:16px}.detail-actions .detail-saves{padding-left:16px;gap:10px}}

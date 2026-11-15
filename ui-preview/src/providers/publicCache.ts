@@ -8,7 +8,7 @@ export interface PublicCacheStore {
 }
 export const PUBLIC_CACHE_MAX_AGE=30*86400000;
 export function publicCacheKey(key:string){
- return /^api:(?:lookup\/shows\?(?:imdb=tt\d{7,10}|thetvdb=[1-9]\d*)|(?:shows|episodes)\/[1-9]\d*\?embed=(?:cast|guestcast)|shows\/[1-9]\d*\/episodes\?specials=1)$/.test(key)||
+ return /^api:(?:lookup\/shows\?(?:imdb=tt\d{7,10}|thetvdb=[1-9]\d*)|(?:shows|episodes)\/[1-9]\d*\?embed=(?:cast|guestcast)|shows\/[1-9]\d*\/episodes\?specials=1|shows\/[1-9]\d*\/images)$/.test(key)||
  /^image:https:\/\/static\.tvmaze\.com\/uploads\/images\/(?:original_untouched|original|medium_landscape)\/\d+\/\d+\.(?:jpg|png|webp)$/.test(key);
 }
 export function usablePublicEntry(entry:PublicCacheEntry|undefined,key:string,now:number){

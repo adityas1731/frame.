@@ -1,5 +1,20 @@
+import {supportedArtworkDimensions} from './artworkLimits.ts';
 export type ArtworkKind='banner'|'card';
 export const MAX_ARTWORK_BYTES=10*1024*1024;
+/** Browser-only provider download: no Jellyfin credentials or arbitrary server fetch. */
+export async function prepareProviderArtwork(source:string,kind:ArtworkKind):Promise<Blob>{
+  const url=new URL(source);
+  const allowed=url.origin==='https://static.tvmaze.com'&&/^\/uploads\/images\/(?:original_untouched|original|medium_portrait|medium_landscape)\/\d+\/\d+\.(jpg|png|webp)$/.test(url.pathname)||url.origin==='https://image.tmdb.org'&&/^\/t\/p\/(?:original|w\d+)\/[a-zA-Z0-9_-]+\.(jpg|png|webp)$/.test(url.pathname);
+  if(!allowed||url.username||url.password||url.search||url.hash)throw new Error('Choose an image from this title’s provider artwork.');
+  const controller=new AbortController();const timer=setTimeout(()=>controller.abort(),15000);
+  try{
+    const response=await fetch(url.href,{credentials:'omit',referrerPolicy:'no-referrer',redirect:'error',signal:controller.signal});
+    if(!response.ok||!response.body)throw new Error('Provider image could not be downloaded. Try another image.');
+    const reader=response.body.getReader();const chunks:Uint8Array<ArrayBuffer>[]=[];let size=0;
+    try{while(true){const {done,value}=await reader.read();if(done)break;size+=value.byteLength;if(size>MAX_ARTWORK_BYTES)throw new Error('Choose an image under 10 MB.');chunks.push(new Uint8Array(value));}}finally{await reader.cancel().catch(()=>{});}
+    return await prepareArtwork(new Blob(chunks),kind);
+  }finally{clearTimeout(timer);}
+}
 export function rasterType(bytes:Uint8Array):string|undefined {
   if(bytes[0]===0xff&&bytes[1]===0xd8&&bytes[2]===0xff)return 'image/jpeg';
   if([137,80,78,71,13,10,26,10].every((v,i)=>bytes[i]===v))return 'image/png';
@@ -14,7 +29,7 @@ export async function prepareArtwork(file:Blob,kind:ArtworkKind):Promise<Blob> {
     const image=new Image();image.decoding='async';
     await new Promise<void>((resolve,reject)=>{image.onload=()=>resolve();image.onerror=()=>reject(new Error('This image could not be opened. Try another file.'));image.src=url;});
     const {naturalWidth:width,naturalHeight:height}=image;
-    if(!width||!height||width>16384||height>16384||width*height>40000000)throw new Error('Choose an image below 40 megapixels and 16,384 pixels per side.');
+    if(!supportedArtworkDimensions(width,height))throw new Error('Choose an image below 40 megapixels and 16,384 pixels per side.');
     const scale=Math.min(1,(kind==='banner'?3840:2000)/Math.max(width,height));
     const canvas=document.createElement('canvas');canvas.width=Math.max(1,Math.round(width*scale));canvas.height=Math.max(1,Math.round(height*scale));
     const context=canvas.getContext('2d');if(!context)throw new Error('Image processing is unavailable in this browser.');

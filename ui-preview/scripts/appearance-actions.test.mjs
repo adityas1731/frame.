@@ -21,3 +21,7 @@ test('enum option labels use readable sentence case without changing values or l
  for(const value of ['small','medium','large','compact','expanded','row','poster'])assert.equal(optionLabel(value,value),value[0].toUpperCase()+value.slice(1));
  assert.equal(optionLabel('my movies','library-id'),'my movies');assert.equal(optionLabel('Sci-Fi','genre'),'Sci-Fi');assert.equal(optionLabel('TV Shows','shows'),'TV Shows');
 });
+
+test('font size participates in appearance save/cancel change tracking',()=>{
+ const current={...prefs,fontSize:'14'};assert.equal(hasAppearanceChanges(defaultAppearance,defaultAppearance,current,current),false);assert.equal(hasAppearanceChanges(defaultAppearance,defaultAppearance,{...current,fontSize:'18'},current),true);assert.equal(hasAppearanceChanges(defaultAppearance,defaultAppearance,{...current,fontSize:'18'},{...current,fontSize:'18'}),false);
+});

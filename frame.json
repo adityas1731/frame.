@@ -3,5 +3,5 @@
   "jellyfinAbi": "12.3.0.0",
   "node": "24.18.0",
   "dotnet": "10.0.403",
-  "releaseNotes": "Refine playback settings and controls, add tag management with reusable tags, and replace offline demo content with a connection screen. Add ticket-style Watch and Resume buttons with episode labels and a half-second hold after the tear animation."
+  "releaseNotes": "Improve playback controls, subtitles, custom fonts and reusable tags. Add compact ticket-style Watch and Resume buttons, smoother transitions and a clearer offline screen. Automatically fill missing display metadata and artwork through verified provider IDs while preserving existing edits. Expand artwork selection and filter images that exceed processing limits."
 }

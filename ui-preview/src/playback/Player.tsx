@@ -1,3 +1,5 @@
+import {useInstalledFont} from '../appearance/useInstalledFont';
+import {PlayerLoading} from './PlayerLoading';
 import {formatPlaybackClock,formatPlaybackTime} from '../platform/duration';
 import {readEarlyProgress,earlyResumeTicks,earlyProgressStore} from './earlyProgress';
 import {CompletedScreen} from './CompletedScreen';
@@ -8,7 +10,7 @@ import {activeSegment,loadSkipping,SegmentSkipper,saveSkipping,type SegmentInfo,
 import {ResumePrompt} from './ResumePrompt';
 import {useEffect,useRef,useState} from 'react';
 import {Link,useNavigate,useParams,useSearchParams} from 'react-router';
-import {ArrowLeft,Play,Pause,Volume2,VolumeX,Maximize,Minimize,Settings,RotateCcw,LoaderCircle,Captions,RotateCw} from 'lucide-react';
+import {ArrowLeft,Play,Pause,Volume2,VolumeX,Maximize,Minimize,Settings,RotateCcw,Captions,RotateCw} from 'lucide-react';
 import {useConnection} from '../jellyfin/useConnection';
 import {useRemote} from '../jellyfin/hooks';
 import {EpisodeBrowser} from './EpisodeBrowser';
@@ -39,7 +41,7 @@ export function Player({itemId,preview}:{itemId:string;preview?:{item:ItemDto;sn
  const skipper=useRef(new SegmentSkipper());
  const [remaining,setRemaining]=useState(false);const [,updateWallClock]=useState(0);
  useEffect(()=>{const timer=setInterval(()=>updateWallClock(n=>n+1),60000);return()=>clearInterval(timer);},[]);
- const [caption,setCaption]=useState(loadCaptionPreferences);const [playerTab,setPlayerTab]=useState<PlayerTab>(preview?.initialTab??'audio');
+ const [caption,setCaption]=useState(loadCaptionPreferences);useInstalledFont(caption.customFont??'',caption.font==='custom');const [playerTab,setPlayerTab]=useState<PlayerTab>(preview?.initialTab??'audio');
  const {client,session}=useConnection();const [params]=useSearchParams();const navigate=useNavigate();const video=useRef<HTMLVideoElement>(null);const host=useRef<HTMLDivElement>(null);const runtime=useRef<Pick<PlaybackRuntime,'subtitleDelay'|'toggle'|'seek'|'mute'|'volume'|'change'|'destroy'|'state'|'loadCustomSubtitle'|'selectCustomSubtitle'|'removeCustomSubtitle'|'selectAdditionalSubtitle'|'getCustomSubtitle'>|null>(null);
  useEffect(()=>{let active=true;skipper.current=new SegmentSkipper();setSegments({itemId:''});
   if(preview)setSegments({itemId,info:preview.segmentInfo??{status:'ready',segments:[]}});
@@ -91,7 +93,7 @@ export function Player({itemId,preview}:{itemId:string;preview?:{item:ItemDto;sn
  const end=projectedEnd(Date.now(),state.position,state.duration,rate,!state.paused&&state.phase==='playing');
  function leave(){if(preview){navigate('/settings');return;}const destination=item?.Type==='Episode'&&item.SeriesId?item.SeriesId:itemId;void runtime.current?.destroy();navigate(`/item/${encodeURIComponent(destination)}`);}
  const ready=!!plan&&state.phase!=='failed';
- return <div ref={host} data-resume-ticks={startTicks} data-plan-start-ticks={plan?.selection.startTicks} className={`frame-player ${state.phase==='ended'?'player-is-ended':''} ${choosing?'player-is-choosing':''} ${pauseScreen?'pause-screen-visible':''} ${preview?'player-ui-preview':''} ${visible||state.paused||settings||episodeBrowser||state.error?'controls-visible':'controls-hidden'}`} onPointerMove={()=>{keyboardInteraction.current=false;wake();}} onPointerDown={()=>{keyboardInteraction.current=false;wake();}} onFocusCapture={wake} onBlurCapture={wake} tabIndex={-1} onKeyDownCapture={()=>{keyboardInteraction.current=true;wake();}} onKeyDown={e=>{
+ return <div ref={host} data-resume-ticks={startTicks} data-plan-start-ticks={plan?.selection.startTicks} className={`frame-player ${state.phase==='ended'?'player-is-ended':''} ${choosing?'player-is-choosing':''} ${pauseScreen?'pause-screen-visible':''} ${preview?'player-ui-preview':''} ${visible||state.paused||settings||episodeBrowser||state.error?'controls-visible':'controls-hidden'}`} onPointerMove={()=>{keyboardInteraction.current=false;wake();}} onPointerDown={()=>{keyboardInteraction.current=false;if(host.current)host.current.dataset.inputMode='pointer';wake();}} onFocusCapture={wake} onBlurCapture={wake} tabIndex={-1} onKeyDownCapture={()=>{keyboardInteraction.current=true;if(host.current)host.current.dataset.inputMode='keyboard';wake();}} onKeyDown={e=>{
   if((e.target as HTMLElement).closest('input,select,textarea,[role=combobox],.player-settings,.player-episode-browser')||(e.target as HTMLElement).matches('button,a')&&[' ','Enter'].includes(e.key))return;wake();
   if([' ','k','ArrowLeft','ArrowRight','j','l','m','f'].includes(e.key)){e.preventDefault();if(e.key===' '||e.key==='k')runtime.current?.toggle();if(['ArrowLeft','j'].includes(e.key))runtime.current?.seek(state.position-10);if(['ArrowRight','l'].includes(e.key))runtime.current?.seek(state.position+10);if(e.key==='m')runtime.current?.mute();if(e.key==='f')void toggleFullscreen();}
  }}>
@@ -101,7 +103,8 @@ export function Player({itemId,preview}:{itemId:string;preview?:{item:ItemDto;sn
  <div className="player-top player-chrome" inert={pauseScreen}><button className="player-icon" aria-label="Return to details" onClick={leave}><ArrowLeft/></button><div className="player-title"><h1>{title}</h1>{item?.Type==='Episode'&&<p>{[item.SeriesName??episodeDetails.series?.Name,episodeLabel(item)].filter(Boolean).join(' · ')}</p>}</div>{item?.Type==='Episode'&&item.SeriesId&&<button className="player-episodes-trigger" aria-label="Browse episodes" aria-expanded={episodeBrowser} onClick={openEpisodes}>Episodes</button>}</div>
  {preview&&<p className="player-preview-note">Original UI preview · no streaming or watch-history changes</p>}
  {choosing&&item&&<ResumePrompt item={episodeDetails.item??item} title={title} online={episodeDetails.online} position={startTicks/10000000} onChoose={setEntry}/>}
- {!choosing&&(busy||state.error||data.error||!item)&&<div className="player-center" role="status">{state.error||data.error?<><h2>Unable To Play This Title</h2><p>{state.error||data.error}</p><button className="button primary" onClick={()=>{if(data.error)data.retry();else setAttempt(a=>a+1);}}>Try again</button><button className="button secondary" onClick={leave}>Back to details</button></>:<><LoaderCircle className="player-spinner" size={36}/><p>{state.phase==='negotiating'?'Preparing your stream…':state.phase==='buffering'?'Buffering…':'Loading…'}</p></>}</div>}
+ <PlayerLoading active={!choosing&&!state.error&&!data.error&&(busy||!item)} phase={state.phase}/>
+ {!choosing&&(state.error||data.error)&&<div className="player-center" role="alert"><h2>Unable To Play This Title</h2><p>{state.error||data.error}</p><button className="button primary" onClick={()=>{if(data.error)data.retry();else setAttempt(a=>a+1);}}>Try again</button><button className="button secondary" onClick={leave}>Back to details</button></div>}
  <CompletedScreen active={state.phase==='ended'&&!episodeBrowser&&!settings} title={title} context={item?.Type==='Episode'?[item.SeriesName??episodeDetails.series?.Name,episodeLabel(item)].filter(Boolean).join(' · '):item?.ProductionYear?String(item.ProductionYear):undefined} description={episodeDetails.item?.Overview||item?.Overview} duration={state.duration} episodes={item?.Type==='Episode'&&!!item.SeriesId} replay={()=>{void runtime.current?.change({startTicks:0});}} browse={openEpisodes} leave={leave}/>
  <SkipButton segment={segment} visible={!!segment&&skipPreferences[segment.type]==='button'&&!pauseScreen&&!choosing&&!settings&&!episodeBrowser&&['playing','paused','ready'].includes(state.phase)} seek={target=>runtime.current?.seek(target)}/>
  <div className="player-bottom player-chrome" inert={pauseScreen}>

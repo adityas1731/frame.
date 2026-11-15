@@ -31,3 +31,8 @@ test('interface headings use title case without damaging acronyms, apostrophes o
  assert.equal(headingCase("what's on TV?"),"What's On TV?");
  assert.equal(headingCase('TMDb & IMDb metadata'),'TMDb & IMDb Metadata');
 });
+
+test('shared provider downloads reject arbitrary hosts and credential-bearing URLs before fetching',async()=>{
+ const {prepareProviderArtwork}=await import('../src/components/customArtwork.ts');
+ for(const url of ['https://evil.invalid/image.jpg','http://static.tvmaze.com/uploads/images/original/1/1.jpg','https://user:secret@static.tvmaze.com/uploads/images/original/1/1.jpg','https://static.tvmaze.com/uploads/images/original/1/1.jpg?token=secret'])await assert.rejects(prepareProviderArtwork(url,'banner'),/Choose an image/);
+});

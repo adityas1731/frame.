@@ -1,7 +1,7 @@
 import type { ItemDto } from '../jellyfin/types.ts';
 import {displayGenres} from './genres.ts';
 export interface ProviderCast { name: string; role?: string; image?: string }
-export interface OnlineMetadata { id: number; kind: 'movie'|'tv'|'episode'; name?: string; originalTitle?:string; genres?:string[]; directors?:string[]; overview?: string; rating?: number; votes?: number; runtime?: number; date?: string; cast: ProviderCast[]; backdrop?: string; backdropWidth?: number; still?: string; stillFallback?: string; source: string; label?: string; artworkSource?: string; artworkLabel?: string }
+export interface OnlineMetadata { id: number; kind: 'movie'|'tv'|'episode'; name?: string; originalTitle?:string; genres?:string[]; directors?:string[]; overview?: string; rating?: number; votes?: number; runtime?: number; date?: string; year?:number; cast: ProviderCast[]; poster?:string; posterFallback?:string; backdrop?: string; backdropFallback?:string; backdropWidth?: number; still?: string; stillFallback?: string; source: string; label?: string; artworkSource?: string; artworkLabel?: string }
 export class ProviderError extends Error {}
 const text = (v: unknown): string | undefined => typeof v === 'string' && v.trim() ? v.trim() : undefined;
 export function providerId(item: ItemDto, key: string): string | undefined { return Object.entries(item.ProviderIds ?? {}).find(([k]) => k.toLowerCase() === key.toLowerCase())?.[1]?.trim(); }
@@ -15,7 +15,7 @@ export function mergeMetadata(item: ItemDto, online?: OnlineMetadata | null) {
   if((!text(item.Name)||filenameTitle(item.Name)||item.Type==='Episode'&&genericEpisodeTitle(item.Name))&&online.name){merged.Name=online.name;fields.push('title');}
   if(!text(item.OriginalTitle)&&online.originalTitle){merged.OriginalTitle=online.originalTitle;fields.push('original title');}
   if(!item.Genres?.length&&online.genres?.length){merged.Genres=online.genres;fields.push('genres');}
-  if(!item.ProductionYear&&online.date){merged.ProductionYear=Number(online.date.slice(0,4));fields.push('year');}
+  if(!item.ProductionYear&&(online.year||online.date)){merged.ProductionYear=online.year??Number(online.date!.slice(0,4));fields.push('year');}
   if(!item.People?.some(p=>p.Type==='Director'&&p.Name)&&online.directors?.length){merged.People=[...(merged.People??[]),...online.directors.map(Name=>({Name,Type:'Director'}))];fields.push('director');}
   if(!text(item.Overview)&&online.overview){merged.Overview=online.overview;fields.push('description');}
   if(item.CommunityRating===undefined&&online.rating!==undefined){merged.CommunityRating=online.rating;fields.push('rating');}
@@ -24,12 +24,3 @@ export function mergeMetadata(item: ItemDto, online?: OnlineMetadata | null) {
   if(!item.People?.some(p=>p.Type==='Actor'&&p.Name)&&online.cast.length){merged.People=[...(merged.People??[]),...online.cast.map(p=>({Name:p.name,Role:p.role,Type:'Actor',OnlineImage:p.image}))];fields.push('cast');}
   return {item:merged,fields};
 }
-
-
-
-
-
-
-
-
-

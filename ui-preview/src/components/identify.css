@@ -9,7 +9,7 @@ body{user-select:none;-webkit-user-select:none}input,textarea,[contenteditable=t
 @media(max-width:520px){.identify-flow form{grid-template-columns:minmax(0,1fr) 6.5rem;gap:.7rem}.identify-modal>header h2{font-size:1.05rem}.identify-result-copy small{font-size:.7rem}.identify-results button{gap:.7rem;padding:.85rem}.identify-modal{padding:1.1rem}.detail-reload{right:1rem;top:1rem}}
 .detail-reload{top:calc(var(--masthead-height,80px) + 24px)}
 
-.banner-picker{margin:16px 0 24px}.banner-options{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px;margin:16px 0;max-height:390px;overflow:auto;padding:3px}.banner-options button{padding:0;overflow:hidden;border:1px solid var(--line-strong);border-radius:12px;background:var(--surface);text-align:left;min-width:0}.banner-options img{display:block;width:100%;aspect-ratio:16/9;object-fit:cover}.banner-options button[aria-pressed='true']{outline:2px solid var(--accent);outline-offset:1px}.banner-options span{display:block;padding:8px 10px;font-size:.8rem;color:var(--muted)}
+.banner-picker{margin:16px 0 24px}.banner-options{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px;margin:16px 0;max-height:none;overflow:visible;padding:3px}.banner-options button{position:relative;padding:0;overflow:hidden;border:1px solid var(--line-strong);border-radius:12px;background:var(--surface);text-align:left;min-width:0}.banner-options img{display:block;width:100%;aspect-ratio:16/9;object-fit:cover}.banner-options button[aria-pressed='true']{outline:2px solid var(--accent);outline-offset:1px}.banner-options span{display:block;padding:8px 10px;font-size:.8rem;color:var(--muted)}
 
 .manage-title-modal{width:min(44rem,calc(100vw - 2rem));padding:1.6rem 1.8rem}
 .manage-title-modal>header h2{font-size:1.5rem;margin:0}body .modal.manage-title-modal>.manage-title-context{margin:0 0 1.5rem;color:var(--text);font-size:1.25rem;font-weight:600;line-height:1.4;letter-spacing:-.015em;overflow-wrap:anywhere}
@@ -25,3 +25,38 @@ body{user-select:none;-webkit-user-select:none}input,textarea,[contenteditable=t
 .artwork-editor h4{display:flex;align-items:center;gap:8px;font-size:.95rem;margin:24px 0 12px}.artwork-options-card{grid-template-columns:repeat(3,minmax(0,1fr))}.artwork-options-card img{aspect-ratio:2/3}.banner-options span{display:flex;justify-content:space-between;align-items:center;gap:6px}.banner-options button{color:var(--text);cursor:pointer}
 .manage-media-details{border-top:1px solid var(--line-strong);padding:1.2rem 0 0}.manage-media-details summary{display:flex;align-items:center;gap:14px;cursor:pointer;font-size:1.05rem;font-weight:600;list-style:none}.manage-media-details summary::-webkit-details-marker{display:none}.manage-media-details summary::after{content:'+';font-size:1.2rem;color:var(--muted);margin-left:auto}.manage-media-details[open] summary::after{content:'−'}.manage-media-details summary small{color:var(--muted);font-size:.8rem;font-weight:400}.manage-media-details>div{padding-top:16px}.manage-media-details .metadata-fields{font-size:.85rem;color:var(--muted);columns:2;padding-left:1.2rem;line-height:1.8}
 @media(max-width:520px){.manage-title-modal{padding:1.2rem}.manage-title-modal>header h2{font-size:1.3rem}.artwork-upload-row{gap:10px}.artwork-hint{font-size:.75rem}.banner-options span{font-size:.7rem}.manage-media-details summary{flex-wrap:wrap;gap:7px}.manage-media-details .metadata-fields{columns:1}}
+
+.artwork-current>.detail-visual{position:absolute;inset:0;width:100%;height:100%;min-height:0;opacity:1;transform:none}.artwork-current>.detail-visual img{width:100%;height:100%;object-fit:cover}.artwork-current .artwork-source{display:none}
+
+.banner-options .artwork-selected{position:absolute;right:8px;bottom:8px;display:grid;place-items:center;width:26px;height:26px;padding:0;border-radius:50%;background:var(--accent);color:var(--canvas)}
+
+.banner-options .artwork-dimensions{display:flex;flex-wrap:wrap;gap:4px 8px;align-items:center;padding:7px 9px;font-size:.75rem;line-height:1.35}.artwork-dimensions small{color:var(--muted);margin-left:auto;font-size:inherit}.banner-options button:disabled{cursor:not-allowed}.banner-options button:disabled img{opacity:.55}.banner-options .artwork-selected{bottom:36px}
+
+/* Title management has its own workspace; ordinary dialogs keep their compact size. */
+body .modal.manage-title-modal{width:min(76rem,calc(100vw - 3rem));max-width:none;max-height:90dvh;padding:2rem 2.25rem;overflow-y:auto;overscroll-behavior:contain}
+.manage-title-modal>.manage-title-context{max-width:100%;font-size:1.4rem}
+.manage-title-modal .artwork-editor-body{display:grid;grid-template-columns:minmax(190px,240px) minmax(0,1fr);gap:2rem;padding:0 0 1.5rem;align-items:start}
+.artwork-controls,.artwork-gallery{min-width:0}
+.artwork-controls{position:sticky;top:1rem}
+.manage-title-modal .artwork-gallery h4{margin:8px 0 16px}
+.manage-title-modal .banner-options{margin:0;gap:16px}
+.manage-title-modal .artwork-options-card{grid-template-columns:repeat(auto-fill,minmax(180px,1fr))}
+.manage-title-modal .artwork-current{margin-top:8px}
+.manage-title-modal .artwork-editor-card .artwork-current{width:min(180px,100%)}
+.manage-title-modal .artwork-scope{line-height:1.5}
+.manage-title-modal .artwork-hint{font-size:.8rem}
+@media(max-width:850px){body .modal.manage-title-modal{width:calc(100vw - 2rem);padding:1.5rem}.manage-title-modal .artwork-editor-body{grid-template-columns:1fr;gap:1rem}.artwork-controls{position:static}.manage-title-modal .artwork-current{max-width:360px}.manage-title-modal .artwork-options-card{grid-template-columns:repeat(auto-fill,minmax(145px,1fr))}}
+@media(max-width:480px){body .modal.manage-title-modal{width:calc(100vw - 1rem);padding:1.1rem;max-height:94dvh}.manage-title-modal .banner-options{gap:12px}.manage-title-modal .artwork-options-card{grid-template-columns:repeat(2,minmax(0,1fr))}}
+
+.manage-title-modal .artwork-controls>.artwork-editor-trigger{padding-top:0;padding-bottom:1rem}.manage-title-modal .artwork-controls{align-self:start}.manage-title-modal .artwork-gallery h4{min-height:42px;align-items:center;margin-top:0}
+
+/* Artwork application keeps the same neutral surface throughout the save. */
+body .artwork-editor .banner-options button:is(:hover,:active,:focus,[aria-pressed='true'],:disabled){background:var(--surface);color:var(--text);border-color:var(--line-strong);box-shadow:none}
+body .artwork-editor .banner-options button[aria-pressed='true']{outline:1px solid var(--text);outline-offset:1px}
+body .artwork-editor .banner-options button:focus:not(:focus-visible){outline:none}
+body .artwork-editor .banner-options button:focus-visible{outline:2px solid var(--text);outline-offset:3px}
+body .artwork-editor .banner-options .artwork-selected{background:var(--text);color:var(--canvas)}
+body .artwork-editor[aria-busy='true'] .banner-options button:disabled img{opacity:1}
+
+/* Override the global button:disabled fade on the tile itself, not just its image. */
+body .artwork-editor[aria-busy="true"] .banner-options button:disabled{opacity:1}

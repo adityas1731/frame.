@@ -7,7 +7,7 @@ import type { ItemDto } from '../jellyfin/types';
 import { useOnline } from './context';
 import { mergeMetadata, ProviderError, type OnlineMetadata } from './metadata';
 export function useRichItem(item?:ItemDto, parent?:ItemDto, enabled=true) {
-  const {client}=useOnline();const key=JSON.stringify([item?.Id,item?.Name,item?.Type,item?.ProviderIds,item?.ParentIndexNumber,item?.IndexNumber,item?.IndexNumberEnd,parent?.ProviderIds,parent?.DisplayOrder,item?.PremiereDate]);
+  const {client}=useOnline();const key=JSON.stringify([item?.Id,item?.Name,item?.Type,item?.ProviderIds,item?.ParentIndexNumber,item?.IndexNumber,item?.IndexNumberEnd,parent?.ProviderIds,parent?.DisplayOrder,item?.PremiereDate,item?.Overview,item?.ProductionYear,item?.ImageTags,item?.BackdropImageTags]);
   const [state,setState]=useState<{client:typeof client;key:string;online?:OnlineMetadata|null;error?:string}>({client:null,key:''});
   const [recovery,setRecovery]=useState(0);const artworkRevision=useArtworkRevision(item?.Id);
   const attempts=useRef(0);
@@ -38,5 +38,5 @@ export function useRichItem(item?:ItemDto, parent?:ItemDto, enabled=true) {
 export function useEpisodeDetails(item?:ItemDto,enabled=true){
  const {client,session}=useConnection();const seriesId=enabled&&item?.Type==='Episode'?item.SeriesId:undefined;
  const parent=useRemote(`episode-series:${seriesId??''}`,()=>seriesId&&client&&session?client.item(session.user.Id,seriesId):Promise.resolve(undefined),false);
- const rich=useRichItem(item,parent.data,enabled&&item?.Type==='Episode');return {...rich,series:parent.data};
+ const rich=useRichItem(item,parent.data,enabled);return {...rich,series:parent.data};
 }

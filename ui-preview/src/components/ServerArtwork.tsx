@@ -6,18 +6,23 @@ import { imageSource } from '../jellyfin/presentation';
 import type { ItemDto } from '../jellyfin/types';
 import {useCustomArtwork,useProviderArtworkChoice} from './useArtworkChoice';
 import {serverArtworkWidth} from './episodeArtworkPolicy';
+import {useArtworkRevision} from '../providers/artworkRefresh';
+import {useRichItem} from '../providers/hooks';
 export function ServerArtwork({ item, backdrop = false, artwork, fit = 'cover', focal = 22, onQuality, allowInherited=true }: { item: ItemDto; backdrop?: boolean; artwork?: 'Logo' | 'Thumb' | 'Banner'; fit?: 'cover' | 'contain'; focal?: number; onQuality?: (width:number)=>void;allowInherited?:boolean }) {
   const { client } = useConnection();
+  const revision=useArtworkRevision(item.Id);
   const isCard=!backdrop&&!artwork&&['Movie','Series'].includes(item.Type??'');
   const custom=useCustomArtwork(item,'card',isCard);const chosen=useProviderArtworkChoice(item,'card',isCard);
-  const [failedChoice,setFailedChoice]=useState('');
-  const override=[custom.url,chosen.url].find(url=>url&&url!==failedChoice);
+  const [failedChoices,setFailedChoices]=useState<string[]>([]);
+  useEffect(()=>setFailedChoices([]),[item.Id,revision,custom.url,chosen.url]);
   const candidate = imageSource(item, backdrop, artwork);const source=allowInherited||!candidate?.inherited?candidate:null;
   const key = source ? `${source.id}:${source.type}:${source.tag}:${backdrop}` : '';
   const host = useRef<HTMLDivElement>(null);
   const [image, setImage] = useState<{ key: string; url: string } | null>(null);
   const [error, setError] = useState('');
   const [portrait, setPortrait] = useState(false);
+  const discovered=useRichItem(item,undefined,isCard&&(!source||!!error)&&(!custom.url||failedChoices.includes(custom.url))&&(!chosen.url||failedChoices.includes(chosen.url)));
+  const override=[custom.url,chosen.url,discovered.online?.poster,discovered.online?.posterFallback].find(url=>url&&!failedChoices.includes(url));
   useEffect(() => {
     let active = true; let url: string | undefined;
     setImage(null); setError(''); setPortrait(false);
@@ -32,9 +37,9 @@ export function ServerArtwork({ item, backdrop = false, artwork, fit = 'cover', 
     }, { rootMargin: '150px' });
     if (host.current) observer.observe(host.current);
     return () => { active = false; observer.disconnect(); if (url) URL.revokeObjectURL(url); };
-  }, [client, key, backdrop, onQuality,override]);
+  }, [client, key, backdrop, onQuality,override,revision]);
   return <div className={`server-artwork ${backdrop ? 'server-backdrop' : ''} ${artwork === 'Logo' ? 'server-logo' : ''}`} data-inherited={source?.inherited || undefined} style={{ '--art-y': `${Math.max(0, Math.min(100, focal))}%` } as CSSProperties} ref={host}>
-    {override?<img src={override} alt="" referrerPolicy="no-referrer" data-artwork-source={override===custom.url?'custom':'provider'} style={{objectFit:fit,objectPosition:'center'}} onError={()=>setFailedChoice(override)}/>:image?.key === key ? <img src={image.url} alt="" onLoad={e => { const isPortrait=(backdrop || artwork === 'Thumb' || item.Type === 'Episode') && e.currentTarget.naturalWidth / e.currentTarget.naturalHeight < 1.3; setPortrait(isPortrait); onQuality?.(isPortrait ? 0 : e.currentTarget.naturalWidth); }} style={{ objectFit: portrait ? 'contain' : fit, objectPosition: portrait ? 'center' : `70% ${focal}%` }} onError={() => { setImage(null); setError('Artwork unavailable'); onQuality?.(0); }}/>
+    {override?<img src={override} alt="" referrerPolicy="no-referrer" data-artwork-source={override===custom.url?'custom':'provider'} style={{objectFit:fit,objectPosition:'center'}} onError={()=>setFailedChoices(values=>[...new Set([...values,override])])}/>:image?.key === key ? <img src={image.url} alt="" onLoad={e => { const isPortrait=(backdrop || artwork === 'Thumb' || item.Type === 'Episode') && e.currentTarget.naturalWidth / e.currentTarget.naturalHeight < 1.3; setPortrait(isPortrait); onQuality?.(isPortrait ? 0 : e.currentTarget.naturalWidth); }} style={{ objectFit: portrait ? 'contain' : fit, objectPosition: portrait ? 'center' : `70% ${focal}%` }} onError={() => { setImage(null); setError('Artwork unavailable'); onQuality?.(0); }}/>
       : <div className="server-artwork-fallback" aria-label={error || (!source ? 'No artwork provided' : 'Loading artwork')}><ImageOff size={30}/></div>}
   </div>;
 }

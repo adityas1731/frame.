@@ -1,8 +1,9 @@
+import {useRichItem} from '../providers/hooks';
+import {TitleLink} from '../components/TitleLink';
 import {WatchlistToggle} from '../components/WatchlistToggle';
 import {displayGenres} from '../providers/genres';
 import {FavoriteToggle} from '../components/FavoriteToggle';
 import {WatchedToggle} from '../components/WatchedToggle';
-import {Link} from 'react-router';
 import {Star} from 'lucide-react';
 import {itemTitle} from '../jellyfin/presentation';
 import type {ItemDto} from '../jellyfin/types';
@@ -19,14 +20,15 @@ export function Score({ item }: { item: ItemDto }) { return typeof item.Communit
 <Star size={12}/>{item.CommunityRating.toFixed(1)}</span> : null; }
 export function LiveCard({ item,showTitles,showRatings }: { item: ItemDto;showTitles?:boolean;showRatings?:boolean }) {
   const { preferences } = usePreview();
+  const rich=useRichItem(item);item=rich.item??item;
   return <article className="media-card">
 <div className="poster">
 <ServerArtwork item={item}/>{!item.UserData?.Played && item.UserData?.PlaybackPositionTicks && item.RunTimeTicks ? <div className="progress-track" aria-label="Jellyfin resume position"><span style={{ width: `${Math.min(100, item.UserData.PlaybackPositionTicks / item.RunTimeTicks * 100)}%` }}/></div> : null}
-<Link className="poster-link" to={`/item/${encodeURIComponent(item.Id)}`} aria-label={`View ${itemTitle(item)}`}/>
+<TitleLink item={item} className="poster-link" to={`/item/${encodeURIComponent(item.Id)}`} aria-label={`View ${itemTitle(item)}`}/>
 </div>
 <div className="card-utility-row" role="group" aria-label={`Actions for ${itemTitle(item)}`}><FavoriteToggle item={item}/><WatchlistToggle item={item}/><WatchedToggle item={item} title={itemTitle(item)}/></div>
 {(showTitles??preferences.showTitles) && <div className="card-info">
-<Link className="card-title" to={`/item/${encodeURIComponent(item.Id)}`}>{itemTitle(item)}</Link>
+<TitleLink item={item} className="card-title" to={`/item/${encodeURIComponent(item.Id)}`}>{itemTitle(item)}</TitleLink>
 <div className="card-meta">
 <span>{[item.ProductionYear, displayGenres(item.Genres)[0]].filter(v => v !== undefined && v !== '').join(' · ') || (item.Type === 'Series' ? 'TV series' : 'Movie')}</span>{(showRatings??preferences.showRatings) && <Score item={item}/>}</div>
 </div>}
