@@ -1,5 +1,13 @@
 # Release Source
 
+## 1.0.7.0
+
+Build revision: `86237846566959e33046d848ec3643eea8629a2a`. Release ZIP: `frame-jellyfin-1.0.7.0-release-ecb83d6bc1c3.zip`, SHA-256 `ecb83d6bc1c3083bc24922c5df3d321ea472b80974e6ae2fa90c7eac32eac673`. Two fresh Windows checkouts produced identical bytes.
+
+Matching source: `frame-source-1.0.7.0-public-5db19692ec0f.zip`, SHA-256 `5db19692ec0f46a69e5c19fdeb9377eae1ba6c897a5ff0c68fc5cc9e8efb92dc`. It contains all 402 tracked files at the build revision; the source map records 250 implementation/build inputs, including the new package-manifest helper. Dependency locks and notices are unchanged apart from the application version.
+
+Both frontend profiles passed 491 tests, TypeScript, host policies and resource checks. Package validation rejects a public package with auto-update disabled. On disposable Jellyfin 12.3, the real Update Plugins scheduled task skipped unmodified 1.0.6.0, automatically installed 1.0.7.0 after the legacy flag was enabled, and retained automatic updates after restart. A repeated task completed without reinstalling the current version. The seven-asset publication rehearsal passed without skips. Existing published versions remain unchanged.
+
 ## 1.0.6.0
 
 Build revision: `2d6da50ff9059135a33b3d5dc8ae009e9a1abcf8`. The approved Release ZIP is `frame-jellyfin-1.0.6.0-release-a16015d91ef9.zip`, SHA-256 `a16015d91ef91ed81dfefe5be8ff7dbd0f056909e28581c14b98eb299e2c1298`.
