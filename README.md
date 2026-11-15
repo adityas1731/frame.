@@ -2,7 +2,7 @@
 
 A customizable browser client for Jellyfin, installed as a server plugin. Open `/Frame/Web/` on your Jellyfin server. The original `/web/` interface stays available.
 
-Tested with Jellyfin Server 12.3. Supports movies and series, browser playback, resume, audio/subtitle controls, favorites, a local watchlist and home-layout customization. Skip buttons require valid timings supplied by Jellyfin for the current file.
+Tested with Jellyfin Server 12.3. Supports movies, series and music libraries, browser playback, resume, audio/subtitle controls, favorites, a local watchlist and home-layout customization. Music includes a persistent player, queue, shuffle and repeat. Skip buttons require valid timings supplied by Jellyfin for the current file.
 
 ![frame. home](docs/images/home-demo.jpg)
 

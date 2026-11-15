@@ -1,5 +1,13 @@
 # Release Source
 
+## 1.0.8.0
+
+Build revision: `b2f775d00b856c453f5eb9eb70b6d3c3d78c91c1`. Release ZIP: `frame-jellyfin-1.0.8.0-release-28271cbc025e.zip`, SHA-256 `28271cbc025e868d10d96f2097029f96eb27194003ead9651c01bc0e3b8fc2eb`. Two fresh Windows checkouts produced identical bytes.
+
+Matching source: `frame-source-1.0.8.0-public-0f463a057315.zip`, SHA-256 `0f463a057315ecf4119af372171dc1ad983ba5ec6312249ecd4184387245f221`. All 431 tracked files match the build revision; the source map records 269 implementation/build inputs. Locked dependencies and notices are unchanged apart from the application version, so the existing verified dependency-source supplement is retained.
+
+Both frontend profiles passed 551 tests, TypeScript, host policies and embedded resource checks. The seven-asset publication rehearsal passed without skips. On disposable Jellyfin 12.3, the normal Update Plugins task upgraded unmodified 1.0.7.0 to the exact 1.0.8.0 package. Restart loaded Frame resources and preserved original Jellyfin Web and future automatic updates. An original standalone MP3 was indexed in a named music library and streamed through the authenticated audio relay: direct byte ranges, progressive MP3 transcoding, missing-cookie rejection and lease cleanup passed. No production media, credentials or listening history were used. Physical Safari testing is not claimed.
+
 ## 1.0.7.0
 
 Build revision: `86237846566959e33046d848ec3643eea8629a2a`. Release ZIP: `frame-jellyfin-1.0.7.0-release-ecb83d6bc1c3.zip`, SHA-256 `ecb83d6bc1c3083bc24922c5df3d321ea472b80974e6ae2fa90c7eac32eac673`. Two fresh Windows checkouts produced identical bytes.
